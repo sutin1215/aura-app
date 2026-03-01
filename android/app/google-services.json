@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "460828749559",
+    "project_id": "aura-vhc",
+    "storage_bucket": "aura-vhc.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:460828749559:android:6e139b5744fecf0974edf2",
+        "android_client_info": {
+          "package_name": "com.aura.aura_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBqc8tdhak9uWReyFIPLY1n6wIcQrVzouY"
+        },
+        {
+          "current_key": "AIzaSyBgFaC0SJcFtLiiz_epTgFD7Yh85OLWVz4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:460828749559:android:2d7655160729ead274edf2",
+        "android_client_info": {
+          "package_name": "com.example.aura_vhc"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBqc8tdhak9uWReyFIPLY1n6wIcQrVzouY"
+        },
+        {
+          "current_key": "AIzaSyBgFaC0SJcFtLiiz_epTgFD7Yh85OLWVz4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
