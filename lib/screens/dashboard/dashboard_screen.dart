@@ -261,6 +261,36 @@ class DashboardScreen extends StatelessWidget {
                         onPressed: () => context.push(AppRoutes.goals),
                       ),
                     ),
+                    const SizedBox(height: 12),
+                    // Hospital Locator shortcut
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        icon: const Icon(Icons.local_hospital_outlined, color: Colors.deepPurple),
+                        label: const Text('Locate Hospital Near Me', style: TextStyle(color: Colors.deepPurple, fontSize: 15)),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          side: const BorderSide(color: Colors.deepPurple),
+                        ),
+                        onPressed: () => context.push(AppRoutes.hospitalLocator),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    // Chat with Provider shortcut
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        icon: const Icon(Icons.chat_bubble_outline, color: Colors.teal),
+                        label: const Text('Chat with Provider', style: TextStyle(color: Colors.teal, fontSize: 15)),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          side: const BorderSide(color: Colors.teal),
+                        ),
+                        onPressed: () => context.push(AppRoutes.chatWithProvider),
+                      ),
+                    ),
                   ],
                 ),
               ),

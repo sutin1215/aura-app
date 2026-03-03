@@ -23,10 +23,13 @@ import '../screens/notifications/notifications_screen.dart';
 import '../screens/settings/settings_screen.dart';
 import '../screens/appointments/appointments_screen.dart';
 import '../screens/share/share_health_screen.dart';
+import '../screens/health/hospital_locator_screen.dart';
+import '../screens/health/provider_chat_screen.dart';
 // Provider portal
 import '../screens/provider/provider_dashboard_screen.dart';
 import '../screens/provider/patient_detail_screen.dart';
 import '../screens/provider/add_report_screen.dart';
+import '../screens/provider/patient_chat_screen.dart';
 
 // ── Route paths ───────────────────────────────────────────────────────────────
 class AppRoutes {
@@ -52,11 +55,14 @@ class AppRoutes {
   static const settings = '/settings';
   static const appointments = '/appointments';
   static const shareHealth = '/share-health';
+  static const hospitalLocator = '/hospital-locator';
+  static const chatWithProvider = '/chat-provider';
 
   // Provider portal
   static const providerDashboard = '/provider/dashboard';
   static const providerPatientDetail = '/provider/patient';
   static const providerAddReport = '/provider/report';
+  static const providerChatPatient = '/provider/chat';
 }
 
 // ── Router factory ────────────────────────────────────────────────────────────
@@ -129,6 +135,8 @@ GoRouter createRouter(BuildContext context) {
       GoRoute(path: AppRoutes.settings, builder: (_, __) => const SettingsScreen()),
       GoRoute(path: AppRoutes.appointments, builder: (_, __) => const AppointmentsScreen()),
       GoRoute(path: AppRoutes.shareHealth, builder: (_, __) => const ShareHealthScreen()),
+      GoRoute(path: AppRoutes.hospitalLocator, builder: (_, __) => const HospitalLocatorScreen()),
+      GoRoute(path: AppRoutes.chatWithProvider, builder: (_, __) => const ProviderChatScreen()),
 
       // ── Provider Portal ────────────────────────────────────────────────────
       GoRoute(path: AppRoutes.providerDashboard, builder: (_, __) => const ProviderDashboardScreen()),
@@ -139,6 +147,16 @@ GoRouter createRouter(BuildContext context) {
       GoRoute(
         path: '${AppRoutes.providerAddReport}/:uid',
         builder: (_, state) => AddReportScreen(patientUid: state.pathParameters['uid']!),
+      ),
+      GoRoute(
+        path: '${AppRoutes.providerChatPatient}/:uid',
+        builder: (_, state) {
+          final patientName = state.uri.queryParameters['name'] ?? 'Patient';
+          return PatientChatScreen(
+            patientUid: state.pathParameters['uid']!,
+            patientName: patientName,
+          );
+        },
       ),
     ],
   );

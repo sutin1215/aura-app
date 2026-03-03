@@ -450,4 +450,42 @@ class FirestoreService {
         .doc(appointmentId)
         .delete();
   }
+
+  // ── Patient-Provider Chat ──────────────────────────────────────────────────
+
+  Future<void> sendMessage({
+    required String patientUid,
+    required String providerUid,
+    required String text,
+    required String senderId,
+  }) async {
+    // Generate a consistent chat room ID based on both UIDs
+    final String chatId = '${patientUid}_$providerUid';
+
+    await _db
+        .collection('chats')
+        .doc(chatId)
+        .collection('messages')
+        .add({
+      'text': text,
+      'senderId': senderId,
+      'timestamp': FieldValue.serverTimestamp(),
+    });
+  }
+
+  Stream<List<Map<String, dynamic>>> streamChatMessages({
+    required String patientUid,
+    required String providerUid,
+  }) {
+    final String chatId = '${patientUid}_$providerUid';
+
+    return _db
+        .collection('chats')
+        .doc(chatId)
+        .collection('messages')
+        .orderBy('timestamp', descending: true)
+        .snapshots()
+        .map((snap) =>
+            snap.docs.map((d) => {'id': d.id, ...d.data()}).toList());
+  }
 }

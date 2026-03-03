@@ -264,6 +264,23 @@ class PatientDetailScreen extends StatelessWidget {
           );
         },
       ),
+      floatingActionButton: FutureBuilder<Map<String, dynamic>?>(
+        future: FirestoreService().getPatientProfile(patientUid),
+        builder: (context, snap) {
+          final patientName = snap.data?['username'] ?? 'Patient';
+          return FloatingActionButton.extended(
+            onPressed: () {
+              context.push(Uri(
+                path: '${AppRoutes.providerChatPatient}/$patientUid',
+                queryParameters: {'name': patientName},
+              ).toString());
+            },
+            icon: const Icon(Icons.chat),
+            label: const Text('Message Patient'),
+            backgroundColor: AppColors.primary,
+          );
+        },
+      ),
     );
   }
 
