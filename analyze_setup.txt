@@ -1,0 +1,14 @@
+Analyzing aura_app...                                           
+
+   info - Use 'const' with the constructor to improve performance - lib\screens\onboarding\profile_setup_screen.dart:187:11 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\screens\onboarding\profile_setup_screen.dart:189:20 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\screens\onboarding\profile_setup_screen.dart:193:11 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\screens\onboarding\profile_setup_screen.dart:194:21 - prefer_const_constructors
+  error - The getter 'border' isn't defined for the type 'AppColors' - lib\screens\onboarding\profile_setup_screen.dart:215:51 - undefined_getter
+  error - The getter 'border' isn't defined for the type 'AppColors' - lib\screens\onboarding\profile_setup_screen.dart:272:55 - undefined_getter
+   info - Use 'const' with the constructor to improve performance - lib\screens\onboarding\profile_setup_screen.dart:308:11 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\screens\onboarding\profile_setup_screen.dart:310:20 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\screens\onboarding\profile_setup_screen.dart:358:11 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\screens\onboarding\profile_setup_screen.dart:360:20 - prefer_const_constructors
+  error - The getter 'border' isn't defined for the type 'AppColors' - lib\screens\onboarding\profile_setup_screen.dart:401:71 - undefined_getter
+

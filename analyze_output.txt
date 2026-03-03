@@ -1,0 +1,8 @@
+[error] The getter 'activity' isn't defined for the type 'AppRoutes' (C:\Users\faiza\aura_app\lib\routes\app_router.dart:119:27)
+[error] The getter 'diet' isn't defined for the type 'AppRoutes' (C:\Users\faiza\aura_app\lib\routes\app_router.dart:122:27)
+[warning] Unused import: '../tracker/tracker_screen.dart' (C:\Users\faiza\aura_app\lib\screens\shell\main_shell.dart:4:8)
+[warning] Unused import: '../companion/companion_screen.dart' (C:\Users\faiza\aura_app\lib\screens\shell\main_shell.dart:5:8)
+[warning] Unused import: '../profile/profile_screen.dart' (C:\Users\faiza\aura_app\lib\screens\shell\main_shell.dart:6:8)
+[error] The getter 'activity' isn't defined for the type 'AppRoutes' (C:\Users\faiza\aura_app\lib\screens\tracker\tracker_screen.dart:41:34)
+[error] The getter 'diet' isn't defined for the type 'AppRoutes' (C:\Users\faiza\aura_app\lib\screens\tracker\tracker_screen.dart:53:34)
+[info] Use 'const' with the constructor to improve performance (C:\Users\faiza\aura_app\lib\screens\tracker\tracker_screen.dart:125:13)

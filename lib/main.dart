@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 import 'theme/app_theme.dart';
 import 'providers/auth_provider.dart';
+import 'providers/metrics_provider.dart';
 import 'routes/app_router.dart';
 
 void main() async {
@@ -21,6 +22,14 @@ class AuraApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProxyProvider<AuthProvider, MetricsProvider>(
+          create: (_) => MetricsProvider(),
+          update: (_, auth, metrics) {
+            // Automatically initialize metrics streaming when user logs in
+            metrics?.initialize(auth.user);
+            return metrics!;
+          },
+        ),
       ],
       child: Builder(
         builder: (context) {

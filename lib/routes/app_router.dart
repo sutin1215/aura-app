@@ -4,17 +4,29 @@ import 'package:provider/provider.dart';
 
 import '../providers/auth_provider.dart';
 
-// ── Screens (stubs for now, filled in one by one) ─────────────────────────────
+// ── Screens ───────────────────────────────────────────────────────────────────
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/register_screen.dart';
 import '../screens/auth/forgot_password_screen.dart';
 import '../screens/onboarding/profile_setup_screen.dart';
 import '../screens/shell/main_shell.dart';
 import '../screens/dashboard/dashboard_screen.dart';
+import '../screens/analytics/analytics_screen.dart';
+import '../screens/tracker/tracker_screen.dart';
 import '../screens/activity/activity_screen.dart';
 import '../screens/diet/diet_screen.dart';
 import '../screens/companion/companion_screen.dart';
 import '../screens/profile/profile_screen.dart';
+import '../screens/profile/edit_profile_screen.dart';
+import '../screens/goals/goals_screen.dart';
+import '../screens/notifications/notifications_screen.dart';
+import '../screens/settings/settings_screen.dart';
+import '../screens/appointments/appointments_screen.dart';
+import '../screens/share/share_health_screen.dart';
+// Provider portal
+import '../screens/provider/provider_dashboard_screen.dart';
+import '../screens/provider/patient_detail_screen.dart';
+import '../screens/provider/add_report_screen.dart';
 
 // ── Route paths ───────────────────────────────────────────────────────────────
 class AppRoutes {
@@ -23,15 +35,28 @@ class AppRoutes {
   static const register = '/register';
   static const forgotPassword = '/forgot-password';
 
-  // Onboarding
+  // Onboarding (patient only)
   static const profileSetup = '/profile-setup';
 
-  // Main tabs
+  // Patient tabs
   static const dashboard = '/dashboard';
+  static const analytics = '/analytics';
+  static const tracker = '/tracker';
   static const activity = '/activity';
   static const diet = '/diet';
   static const companion = '/companion';
   static const profile = '/profile';
+  static const editProfile = '/profile/edit';
+  static const goals = '/goals';
+  static const notifications = '/notifications';
+  static const settings = '/settings';
+  static const appointments = '/appointments';
+  static const shareHealth = '/share-health';
+
+  // Provider portal
+  static const providerDashboard = '/provider/dashboard';
+  static const providerPatientDetail = '/provider/patient';
+  static const providerAddReport = '/provider/report';
 }
 
 // ── Router factory ────────────────────────────────────────────────────────────
@@ -44,50 +69,76 @@ GoRouter createRouter(BuildContext context) {
     redirect: (context, state) {
       final auth = Provider.of<AuthProvider>(context, listen: false);
       final isAuth = auth.isAuthenticated;
-      final isOnAuthPage = state.fullPath == AppRoutes.login ||
-          state.fullPath == AppRoutes.register ||
-          state.fullPath == AppRoutes.forgotPassword;
+      final path = state.fullPath ?? '';
+
+      final isOnAuthPage = path == AppRoutes.login ||
+          path == AppRoutes.register ||
+          path == AppRoutes.forgotPassword;
 
       if (auth.status == AuthStatus.unknown) return null;
+      if (isAuth && auth.isLoadingProfile) return null;
+
+      // Unauthenticated → login
       if (!isAuth && !isOnAuthPage) return AppRoutes.login;
-      if (isAuth && isOnAuthPage) {
-        if (!auth.isProfileComplete) return AppRoutes.profileSetup;
-        return AppRoutes.dashboard;
+
+      if (isAuth && !auth.isLoadingProfile) {
+        // ── Provider branch ──────────────────────────────────────────────────
+        if (auth.isProvider) {
+          final isOnProviderPage = path.startsWith('/provider');
+          if (isOnAuthPage) return AppRoutes.providerDashboard;
+          if (!isOnProviderPage && !isOnAuthPage) return AppRoutes.providerDashboard;
+          return null;
+        }
+
+        // ── Patient branch ───────────────────────────────────────────────────
+        final isSetupPage = path == AppRoutes.profileSetup;
+        if (!auth.isProfileComplete && !isSetupPage) return AppRoutes.profileSetup;
+        if (auth.isProfileComplete && (isOnAuthPage || isSetupPage)) {
+          return AppRoutes.dashboard;
+        }
       }
       return null;
     },
     routes: [
-      // ── Auth ───────────────────────────────────────────────────────────────
+      // ── Auth ──────────────────────────────────────────────────────────────
       GoRoute(path: AppRoutes.login, builder: (_, __) => const LoginScreen()),
-      GoRoute(
-          path: AppRoutes.register, builder: (_, __) => const RegisterScreen()),
-      GoRoute(
-          path: AppRoutes.forgotPassword,
-          builder: (_, __) => const ForgotPasswordScreen()),
+      GoRoute(path: AppRoutes.register, builder: (_, __) => const RegisterScreen()),
+      GoRoute(path: AppRoutes.forgotPassword, builder: (_, __) => const ForgotPasswordScreen()),
 
-      // ── Onboarding ─────────────────────────────────────────────────────────
-      GoRoute(
-          path: AppRoutes.profileSetup,
-          builder: (_, __) => const ProfileSetupScreen()),
+      // ── Onboarding ────────────────────────────────────────────────────────
+      GoRoute(path: AppRoutes.profileSetup, builder: (_, __) => const ProfileSetupScreen()),
 
-      // ── Main shell with bottom nav ─────────────────────────────────────────
+      // ── Patient Shell with bottom nav ─────────────────────────────────────
       ShellRoute(
         builder: (context, state, child) => MainShell(child: child),
         routes: [
-          GoRoute(
-              path: AppRoutes.dashboard,
-              builder: (_, __) => const DashboardScreen()),
-          GoRoute(
-              path: AppRoutes.activity,
-              builder: (_, __) => const ActivityScreen()),
-          GoRoute(path: AppRoutes.diet, builder: (_, __) => const DietScreen()),
-          GoRoute(
-              path: AppRoutes.companion,
-              builder: (_, __) => const CompanionScreen()),
-          GoRoute(
-              path: AppRoutes.profile,
-              builder: (_, __) => const ProfileScreen()),
+          GoRoute(path: AppRoutes.dashboard, builder: (_, __) => const DashboardScreen()),
+          GoRoute(path: AppRoutes.analytics, builder: (_, __) => const AnalyticsScreen()),
+          GoRoute(path: AppRoutes.tracker, builder: (_, __) => const TrackerScreen()),
+          GoRoute(path: AppRoutes.companion, builder: (_, __) => const CompanionScreen()),
+          GoRoute(path: AppRoutes.profile, builder: (_, __) => const ProfileScreen()),
         ],
+      ),
+
+      // ── Patient Overlayed Screens ──────────────────────────────────────────
+      GoRoute(path: AppRoutes.editProfile, builder: (_, __) => const EditProfileScreen()),
+      GoRoute(path: AppRoutes.activity, builder: (_, __) => const ActivityScreen()),
+      GoRoute(path: AppRoutes.diet, builder: (_, __) => const DietScreen()),
+      GoRoute(path: AppRoutes.goals, builder: (_, __) => const GoalsScreen()),
+      GoRoute(path: AppRoutes.notifications, builder: (_, __) => const NotificationsScreen()),
+      GoRoute(path: AppRoutes.settings, builder: (_, __) => const SettingsScreen()),
+      GoRoute(path: AppRoutes.appointments, builder: (_, __) => const AppointmentsScreen()),
+      GoRoute(path: AppRoutes.shareHealth, builder: (_, __) => const ShareHealthScreen()),
+
+      // ── Provider Portal ────────────────────────────────────────────────────
+      GoRoute(path: AppRoutes.providerDashboard, builder: (_, __) => const ProviderDashboardScreen()),
+      GoRoute(
+        path: '${AppRoutes.providerPatientDetail}/:uid',
+        builder: (_, state) => PatientDetailScreen(patientUid: state.pathParameters['uid']!),
+      ),
+      GoRoute(
+        path: '${AppRoutes.providerAddReport}/:uid',
+        builder: (_, state) => AddReportScreen(patientUid: state.pathParameters['uid']!),
       ),
     ],
   );

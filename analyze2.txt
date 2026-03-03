@@ -1,0 +1,35 @@
+Analyzing aura_app...                                           
+
+   info - Use 'const' with the constructor to improve performance - lib\screens\activity\activity_screen.dart:109:28 - prefer_const_constructors
+  error - The named parameter 'prefixIcon' is required, but there's no corresponding argument - lib\screens\activity\activity_screen.dart:176:19 - missing_required_argument
+  error - The named parameter 'prefixIcon' is required, but there's no corresponding argument - lib\screens\activity\activity_screen.dart:182:19 - missing_required_argument
+   info - Use 'const' with the constructor to improve performance - lib\screens\activity\activity_screen.dart:229:23 - prefer_const_constructors
+   info - Use 'const' literals as arguments to constructors of '@immutable' classes - lib\screens\activity\activity_screen.dart:230:35 - prefer_const_literals_to_create_immutables
+   info - Use 'const' with the constructor to improve performance - lib\screens\activity\activity_screen.dart:231:27 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\screens\activity\activity_screen.dart:231:48 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\screens\activity\activity_screen.dart:233:27 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\screens\activity\activity_screen.dart:233:49 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\screens\activity\activity_screen.dart:246:29 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\screens\activity\activity_screen.dart:246:60 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\screens\activity\activity_screen.dart:261:29 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\screens\activity\activity_screen.dart:261:50 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\screens\activity\activity_screen.dart:301:19 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\screens\activity\activity_screen.dart:304:22 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\screens\activity\activity_screen.dart:304:45 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\screens\activity\activity_screen.dart:305:24 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\screens\activity\activity_screen.dart:305:47 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\screens\activity\activity_screen.dart:306:23 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\screens\activity\activity_screen.dart:306:46 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\screens\activity\activity_screen.dart:334:22 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\screens\activity\activity_screen.dart:348:19 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\screens\activity\activity_screen.dart:351:22 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\screens\activity\activity_screen.dart:351:45 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\screens\activity\activity_screen.dart:352:24 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\screens\activity\activity_screen.dart:352:47 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\screens\diet\diet_screen.dart:96:19 - prefer_const_constructors
+   info - Unnecessary braces in a string interpolation - lib\screens\diet\diet_screen.dart:97:22 - unnecessary_brace_in_string_interps
+   info - Use 'const' with the constructor to improve performance - lib\screens\diet\diet_screen.dart:98:28 - prefer_const_constructors
+  error - The named parameter 'prefixIcon' is required, but there's no corresponding argument - lib\screens\diet\diet_screen.dart:151:32 - missing_required_argument
+   info - Use 'const' with the constructor to improve performance - lib\screens\diet\diet_screen.dart:264:20 - prefer_const_constructors
+  error - The getter 'border' isn't defined for the type 'AppColors' - lib\screens\diet\diet_screen.dart:276:45 - undefined_getter
+
