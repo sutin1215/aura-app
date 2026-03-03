@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../services/firestore_service.dart';
 import '../../theme/app_theme.dart';
 import '../../routes/app_router.dart';
+import 'package:go_router/go_router.dart'; // <--- ADD THIS LINE
 
 class PatientDetailScreen extends StatelessWidget {
   final String patientUid;
@@ -15,7 +16,10 @@ class PatientDetailScreen extends StatelessWidget {
     if (birth == null) return 0;
     final now = DateTime.now();
     int age = now.year - birth.year;
-    if (now.month < birth.month || (now.month == birth.month && now.day < birth.day)) age--;
+    if (now.month < birth.month ||
+        (now.month == birth.month && now.day < birth.day)) {
+      age--;
+    }
     return age;
   }
 
@@ -36,9 +40,11 @@ class PatientDetailScreen extends StatelessWidget {
         elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.add_circle_outline, color: AppColors.primary),
+            icon:
+                const Icon(Icons.add_circle_outline, color: AppColors.primary),
             tooltip: 'Add Report',
-            onPressed: () => context.push('${AppRoutes.providerAddReport}/$patientUid'),
+            onPressed: () =>
+                context.push('${AppRoutes.providerAddReport}/$patientUid'),
           ),
         ],
       ),
@@ -78,16 +84,26 @@ class PatientDetailScreen extends StatelessWidget {
                           const CircleAvatar(
                             radius: 36,
                             backgroundColor: AppColors.primary,
-                            child: Icon(Icons.person, size: 38, color: Colors.white),
+                            child: Icon(Icons.person,
+                                size: 38, color: Colors.white),
                           ),
                           const SizedBox(width: 16),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(p['username'] ?? 'Unknown', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-                                Text(p['email'] ?? '', style: const TextStyle(color: AppColors.textSecondary)),
-                                Text('${p['gender'] ?? '–'} · $age yrs', style: const TextStyle(color: AppColors.textHint, fontSize: 13)),
+                                Text(p['username'] ?? 'Unknown',
+                                    style: const TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.textPrimary)),
+                                Text(p['email'] ?? '',
+                                    style: const TextStyle(
+                                        color: AppColors.textSecondary)),
+                                Text('${p['gender'] ?? '–'} · $age yrs',
+                                    style: const TextStyle(
+                                        color: AppColors.textHint,
+                                        fontSize: 13)),
                               ],
                             ),
                           ),
@@ -97,19 +113,28 @@ class PatientDetailScreen extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
-                          _statChip('Height', '${h.toStringAsFixed(0)} cm', AppColors.primary),
-                          _statChip('Weight', '${w.toStringAsFixed(1)} kg', AppColors.steps),
-                          _statChip('BMI', bmi > 0 ? bmi.toStringAsFixed(1) : '–', bmi > 25 ? AppColors.error : AppColors.success),
+                          _statChip('Height', '${h.toStringAsFixed(0)} cm',
+                              AppColors.primary),
+                          _statChip('Weight', '${w.toStringAsFixed(1)} kg',
+                              AppColors.steps),
+                          _statChip(
+                              'BMI',
+                              bmi > 0 ? bmi.toStringAsFixed(1) : '–',
+                              bmi > 25 ? AppColors.error : AppColors.success),
                         ],
                       ),
                       if (conditions.isNotEmpty) ...[
                         const SizedBox(height: 12),
                         Wrap(
                           spacing: 8,
-                          children: conditions.map((c) => Chip(
-                            label: Text(c, style: const TextStyle(fontSize: 12)),
-                            backgroundColor: AppColors.primary.withAlpha(20),
-                          )).toList(),
+                          children: conditions
+                              .map((c) => Chip(
+                                    label: Text(c,
+                                        style: const TextStyle(fontSize: 12)),
+                                    backgroundColor:
+                                        AppColors.primary.withAlpha(20),
+                                  ))
+                              .toList(),
                         ),
                       ],
                     ],
@@ -125,25 +150,37 @@ class PatientDetailScreen extends StatelessWidget {
                     final m = mSnap.data;
                     return Container(
                       padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(24)),
+                      decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(24)),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text("Today's Metrics", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textPrimary)),
+                          const Text("Today's Metrics",
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  color: AppColors.textPrimary)),
                           const SizedBox(height: 12),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
                               _metricChip('👟', 'Steps', '${m?.steps ?? 0}'),
-                              _metricChip('💧', 'Water', '${m?.waterIntakeMl ?? 0} ml'),
-                              _metricChip('🔥', 'Calories', '${m?.caloriesBurned ?? 0}'),
-                              _metricChip('😴', 'Sleep', '${((m?.sleepMinutes ?? 0) / 60).toStringAsFixed(1)}h'),
+                              _metricChip(
+                                  '💧', 'Water', '${m?.waterIntakeMl ?? 0} ml'),
+                              _metricChip('🔥', 'Calories',
+                                  '${m?.caloriesBurned ?? 0}'),
+                              _metricChip('😴', 'Sleep',
+                                  '${((m?.sleepMinutes ?? 0) / 60).toStringAsFixed(1)}h'),
                             ],
                           ),
                           if ((m?.heartRate ?? 0) > 0) ...[
                             const SizedBox(height: 8),
-                            Text('Heart Rate: ${m!.heartRate} bpm  ·  BP: ${m.bloodPressureSystolic}/${m.bloodPressureDiastolic}',
-                                style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                            Text(
+                                'Heart Rate: ${m!.heartRate} bpm  ·  BP: ${m.bloodPressureSystolic}/${m.bloodPressureDiastolic}',
+                                style: const TextStyle(
+                                    color: AppColors.textSecondary,
+                                    fontSize: 13)),
                           ],
                         ],
                       ),
@@ -154,7 +191,11 @@ class PatientDetailScreen extends StatelessWidget {
                 const SizedBox(height: 20),
 
                 // Reports list
-                const Text('Reports', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppColors.textPrimary)),
+                const Text('Reports',
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                        color: AppColors.textPrimary)),
                 const SizedBox(height: 12),
                 StreamBuilder<List<Map<String, dynamic>>>(
                   stream: db.streamPatientReports(patientUid),
@@ -163,35 +204,52 @@ class PatientDetailScreen extends StatelessWidget {
                     if (reports.isEmpty) {
                       return Container(
                         padding: const EdgeInsets.all(24),
-                        decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(20)),
+                        decoration: BoxDecoration(
+                            color: AppColors.surface,
+                            borderRadius: BorderRadius.circular(20)),
                         child: const Center(
-                          child: Text('No reports yet. Tap + to add one.', style: TextStyle(color: AppColors.textSecondary)),
+                          child: Text('No reports yet. Tap + to add one.',
+                              style: TextStyle(color: AppColors.textSecondary)),
                         ),
                       );
                     }
                     return Column(
                       children: reports.map((r) {
                         final date = r['dateUploaded'] != null
-                            ? DateFormat('MMM d, yyyy').format(DateTime.parse(r['dateUploaded']))
+                            ? DateFormat('MMM d, yyyy')
+                                .format(DateTime.parse(r['dateUploaded']))
                             : '';
                         return Container(
                           margin: const EdgeInsets.only(bottom: 12),
                           padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(20)),
+                          decoration: BoxDecoration(
+                              color: AppColors.surface,
+                              borderRadius: BorderRadius.circular(20)),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Row(
                                 children: [
-                                  const Icon(Icons.description, color: AppColors.primary, size: 20),
+                                  const Icon(Icons.description,
+                                      color: AppColors.primary, size: 20),
                                   const SizedBox(width: 8),
-                                  Expanded(child: Text(r['title'] ?? 'Report', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary))),
-                                  Text(date, style: const TextStyle(fontSize: 11, color: AppColors.textHint)),
+                                  Expanded(
+                                      child: Text(r['title'] ?? 'Report',
+                                          style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              color: AppColors.textPrimary))),
+                                  Text(date,
+                                      style: const TextStyle(
+                                          fontSize: 11,
+                                          color: AppColors.textHint)),
                                 ],
                               ),
                               if ((r['notes'] as String? ?? '').isNotEmpty) ...[
                                 const SizedBox(height: 8),
-                                Text(r['notes'] ?? '', style: const TextStyle(color: AppColors.textSecondary, height: 1.4)),
+                                Text(r['notes'] ?? '',
+                                    style: const TextStyle(
+                                        color: AppColors.textSecondary,
+                                        height: 1.4)),
                               ],
                             ],
                           ),
@@ -212,8 +270,11 @@ class PatientDetailScreen extends StatelessWidget {
   Widget _statChip(String label, String value, Color color) {
     return Column(
       children: [
-        Text(value, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: color)),
-        Text(label, style: const TextStyle(color: AppColors.textHint, fontSize: 12)),
+        Text(value,
+            style: TextStyle(
+                fontWeight: FontWeight.bold, fontSize: 18, color: color)),
+        Text(label,
+            style: const TextStyle(color: AppColors.textHint, fontSize: 12)),
       ],
     );
   }
@@ -223,8 +284,13 @@ class PatientDetailScreen extends StatelessWidget {
       children: [
         Text(emoji, style: const TextStyle(fontSize: 20)),
         const SizedBox(height: 4),
-        Text(value, style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary, fontSize: 13)),
-        Text(label, style: const TextStyle(color: AppColors.textHint, fontSize: 11)),
+        Text(value,
+            style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+                fontSize: 13)),
+        Text(label,
+            style: const TextStyle(color: AppColors.textHint, fontSize: 11)),
       ],
     );
   }

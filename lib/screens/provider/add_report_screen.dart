@@ -30,7 +30,9 @@ class _AddReportScreenState extends State<AddReportScreen> {
     final title = _titleController.text.trim();
     if (title.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a report title'), backgroundColor: AppColors.error),
+        const SnackBar(
+            content: Text('Please enter a report title'),
+            backgroundColor: AppColors.error),
       );
       return;
     }
@@ -46,14 +48,17 @@ class _AddReportScreenState extends State<AddReportScreen> {
       );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Report saved successfully'), backgroundColor: AppColors.success),
+          const SnackBar(
+              content: Text('Report saved successfully'),
+              backgroundColor: AppColors.success),
         );
         context.pop();
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error),
+          SnackBar(
+              content: Text('Error: $e'), backgroundColor: AppColors.error),
         );
       }
     } finally {
@@ -81,60 +86,74 @@ class _AddReportScreenState extends State<AddReportScreen> {
                 color: AppColors.primary.withAlpha(20),
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: Row(
+              child: const Row(
                 children: [
-                  const Icon(Icons.info_outline, color: AppColors.primary),
-                  const SizedBox(width: 12),
-                  const Expanded(
+                  Icon(Icons.info_outline, color: AppColors.primary),
+                  SizedBox(width: 12),
+                  Expanded(
                     child: Text(
                       'This report will be saved to the patient\'s health record and visible in their app.',
-                      style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                      style: TextStyle(
+                          color: AppColors.textSecondary, fontSize: 13),
                     ),
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 24),
-
-            const Text('Report Title', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+            const Text('Report Title',
+                style: TextStyle(
+                    fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
             const SizedBox(height: 8),
             TextField(
               controller: _titleController,
               decoration: InputDecoration(
                 hintText: 'e.g. Monthly Check-up Summary',
                 prefixIcon: const Icon(Icons.title, color: AppColors.primary),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                border:
+                    OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
                 filled: true,
                 fillColor: AppColors.surface,
               ),
             ),
-
             const SizedBox(height: 20),
-            const Text('Notes / Findings', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+            const Text('Notes / Findings',
+                style: TextStyle(
+                    fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
             const SizedBox(height: 8),
             TextField(
               controller: _notesController,
               maxLines: 8,
               decoration: InputDecoration(
-                hintText: 'Enter clinical notes, recommendations, or findings...',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                hintText:
+                    'Enter clinical notes, recommendations, or findings...',
+                border:
+                    OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
                 filled: true,
                 fillColor: AppColors.surface,
               ),
             ),
-
             const SizedBox(height: 32),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
                 icon: _isSaving
-                    ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                    ? const SizedBox(
+                        height: 18,
+                        width: 18,
+                        child: CircularProgressIndicator(
+                            color: Colors.white, strokeWidth: 2))
                     : const Icon(Icons.save, color: Colors.white),
-                label: const Text('Save Report', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                label: const Text('Save Report',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16)),
                 ),
                 onPressed: _isSaving ? null : _save,
               ),
