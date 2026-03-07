@@ -18,7 +18,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  
+
   // Provider-only fields
   final _nameController = TextEditingController();
   final _specialtyController = TextEditingController();
@@ -122,7 +122,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             duration: const Duration(milliseconds: 200),
                             padding: const EdgeInsets.symmetric(vertical: 12),
                             decoration: BoxDecoration(
-                              color: !_isProvider ? AppColors.primary : Colors.transparent,
+                              color: !_isProvider
+                                  ? AppColors.primary
+                                  : Colors.transparent,
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(
@@ -130,7 +132,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
-                                color: !_isProvider ? Colors.white : AppColors.textSecondary,
+                                color: !_isProvider
+                                    ? Colors.white
+                                    : AppColors.textSecondary,
                               ),
                             ),
                           ),
@@ -143,7 +147,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             duration: const Duration(milliseconds: 200),
                             padding: const EdgeInsets.symmetric(vertical: 12),
                             decoration: BoxDecoration(
-                              color: _isProvider ? AppColors.primary : Colors.transparent,
+                              color: _isProvider
+                                  ? AppColors.primary
+                                  : Colors.transparent,
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(
@@ -151,7 +157,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
-                                color: _isProvider ? Colors.white : AppColors.textSecondary,
+                                color: _isProvider
+                                    ? Colors.white
+                                    : AppColors.textSecondary,
                               ),
                             ),
                           ),
@@ -170,7 +178,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     prefixIcon: Icons.person_outline,
                     controller: _nameController,
                     validator: (val) {
-                      if (_isProvider && (val == null || val.isEmpty)) return 'Name is required';
+                      if (_isProvider && (val == null || val.isEmpty))
+                        return 'Name is required';
                       return null;
                     },
                   ),
@@ -181,7 +190,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     prefixIcon: Icons.medical_services_outlined,
                     controller: _specialtyController,
                     validator: (val) {
-                      if (_isProvider && (val == null || val.isEmpty)) return 'Specialty is required';
+                      if (_isProvider && (val == null || val.isEmpty))
+                        return 'Specialty is required';
                       return null;
                     },
                   ),

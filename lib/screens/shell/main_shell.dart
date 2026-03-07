@@ -14,10 +14,10 @@ class _MainShellState extends State<MainShell> {
   int _currentIndex(BuildContext context) {
     final location = GoRouterState.of(context).fullPath ?? '';
     if (location.startsWith(AppRoutes.dashboard)) return 0;
-    if (location.startsWith(AppRoutes.analytics)) return 1; 
-    if (location.startsWith(AppRoutes.tracker)) return 2; 
-    if (location.startsWith(AppRoutes.companion)) return 3; 
-    if (location.startsWith(AppRoutes.profile)) return 4; 
+    if (location.startsWith(AppRoutes.analytics)) return 1;
+    if (location.startsWith(AppRoutes.tracker)) return 2;
+    if (location.startsWith(AppRoutes.companion)) return 3;
+    if (location.startsWith(AppRoutes.profile)) return 4;
     return 0;
   }
 
@@ -26,7 +26,8 @@ class _MainShellState extends State<MainShell> {
     return Scaffold(
       body: widget.child, // Use widget.child for StatefulWidget
       bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed, // Ensure it doesn't try to shift with 6 items
+        type: BottomNavigationBarType
+            .fixed, // Ensure it doesn't try to shift with 6 items
         selectedItemColor: Theme.of(context).primaryColor,
         unselectedItemColor: Colors.grey,
         currentIndex: _currentIndex(context),

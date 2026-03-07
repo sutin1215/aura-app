@@ -71,7 +71,8 @@ class _ProviderChatScreenState extends State<ProviderChatScreen> {
                 ),
                 const SizedBox(height: 32),
                 ElevatedButton(
-                  onPressed: () => context.push(AppRoutes.appointments),
+                  onPressed: () =>
+                      context.push(AppRoutes.healthcareInteraction),
                   child: const Text('Go to Provider Settings'),
                 ),
               ],
@@ -106,39 +107,49 @@ class _ProviderChatScreenState extends State<ProviderChatScreen> {
                 }
 
                 final messages = snapshot.data ?? [];
-                
+
                 return messages.isEmpty
                     ? Center(
                         child: Text(
                           'Start a conversation with your provider.',
-                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                color: Colors.grey,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                    color: Colors.grey,
+                                  ),
                           textAlign: TextAlign.center,
                         ),
                       )
                     : ListView.builder(
                         controller: _scrollController,
                         reverse: true,
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 24),
                         itemCount: messages.length,
                         itemBuilder: (context, index) {
                           final msg = messages[index];
                           final isMe = msg['senderId'] == patientUid;
-                          final timeStr = _formatTime(msg['timestamp'] as Timestamp?);
+                          final timeStr =
+                              _formatTime(msg['timestamp'] as Timestamp?);
 
                           return Align(
-                            alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+                            alignment: isMe
+                                ? Alignment.centerRight
+                                : Alignment.centerLeft,
                             child: Container(
                               margin: const EdgeInsets.only(bottom: 12),
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 12),
                               decoration: BoxDecoration(
                                 color: isMe ? AppColors.primary : Colors.white,
                                 borderRadius: BorderRadius.only(
                                   topLeft: const Radius.circular(16),
                                   topRight: const Radius.circular(16),
-                                  bottomLeft: isMe ? const Radius.circular(16) : Radius.zero,
-                                  bottomRight: isMe ? Radius.zero : const Radius.circular(16),
+                                  bottomLeft: isMe
+                                      ? const Radius.circular(16)
+                                      : Radius.zero,
+                                  bottomRight: isMe
+                                      ? Radius.zero
+                                      : const Radius.circular(16),
                                 ),
                                 boxShadow: [
                                   BoxShadow(
@@ -154,7 +165,9 @@ class _ProviderChatScreenState extends State<ProviderChatScreen> {
                                   Text(
                                     msg['text'] ?? '',
                                     style: TextStyle(
-                                      color: isMe ? Colors.white : AppColors.textPrimary,
+                                      color: isMe
+                                          ? Colors.white
+                                          : AppColors.textPrimary,
                                       fontSize: 16,
                                     ),
                                   ),
@@ -162,7 +175,8 @@ class _ProviderChatScreenState extends State<ProviderChatScreen> {
                                   Text(
                                     timeStr,
                                     style: TextStyle(
-                                      color: isMe ? Colors.white70 : Colors.grey,
+                                      color:
+                                          isMe ? Colors.white70 : Colors.grey,
                                       fontSize: 11,
                                     ),
                                   ),
@@ -175,7 +189,7 @@ class _ProviderChatScreenState extends State<ProviderChatScreen> {
               },
             ),
           ),
-          
+
           // Message Input Field
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -203,10 +217,12 @@ class _ProviderChatScreenState extends State<ProviderChatScreen> {
                         ),
                         filled: true,
                         fillColor: AppColors.background,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 20, vertical: 12),
                       ),
                       textInputAction: TextInputAction.send,
-                      onSubmitted: (_) => _sendMessage(patientUid, assignedProviderId),
+                      onSubmitted: (_) =>
+                          _sendMessage(patientUid, assignedProviderId),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -217,7 +233,8 @@ class _ProviderChatScreenState extends State<ProviderChatScreen> {
                     ),
                     child: IconButton(
                       icon: const Icon(Icons.send, color: Colors.white),
-                      onPressed: () => _sendMessage(patientUid, assignedProviderId),
+                      onPressed: () =>
+                          _sendMessage(patientUid, assignedProviderId),
                     ),
                   ),
                 ],

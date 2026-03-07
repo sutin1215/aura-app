@@ -25,7 +25,7 @@ class ProfileScreen extends StatelessWidget {
       // BMI = kg / (m^2)
       final heightInMeters = userProfile.height / 100;
       bmi = userProfile.weight / (heightInMeters * heightInMeters);
-      
+
       if (bmi < 18.5) {
         bmiCategory = 'Underweight';
       } else if (bmi >= 18.5 && bmi < 25) {
@@ -60,7 +60,8 @@ class ProfileScreen extends StatelessWidget {
                   CircleAvatar(
                     radius: 50,
                     backgroundColor: AppColors.primary.withAlpha(30),
-                    child: const Icon(Icons.person, size: 50, color: AppColors.primary),
+                    child: const Icon(Icons.person,
+                        size: 50, color: AppColors.primary),
                   ),
                   const SizedBox(height: 16),
                   Text(
@@ -82,7 +83,8 @@ class ProfileScreen extends StatelessWidget {
                   // BMI Badge
                   if (bmi > 0)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 6),
                       decoration: BoxDecoration(
                         color: AppColors.primary.withAlpha(50),
                         borderRadius: BorderRadius.circular(20),
@@ -100,7 +102,7 @@ class ProfileScreen extends StatelessWidget {
                 ],
               ),
             ),
-            
+
             const SizedBox(height: 40),
 
             // My Goals Section (Moved from Activity)
@@ -112,7 +114,7 @@ class ProfileScreen extends StatelessWidget {
                   ),
             ),
             const SizedBox(height: 20),
-            
+
             LinearProgressCard(
               title: 'Daily Steps',
               currentValue: '${today?.steps ?? 0}',
@@ -147,7 +149,7 @@ class ProfileScreen extends StatelessWidget {
             ),
 
             const SizedBox(height: 32),
-            
+
             // Achievements Section
             Text(
               'Recent Achievements',
@@ -160,11 +162,13 @@ class ProfileScreen extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: _buildAchievementBadge(context, 'Early Bird', '🌅', AppColors.warning),
+                  child: _buildAchievementBadge(
+                      context, 'Early Bird', '🌅', AppColors.warning),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
-                  child: _buildAchievementBadge(context, '7 Day Streak', '🔥', AppColors.error),
+                  child: _buildAchievementBadge(
+                      context, '7 Day Streak', '🔥', AppColors.error),
                 ),
               ],
             ),
@@ -180,68 +184,100 @@ class ProfileScreen extends StatelessWidget {
                   ),
             ),
             const SizedBox(height: 16),
-            
+
             Container(
               decoration: BoxDecoration(
                 color: AppColors.surface,
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: [
-                  BoxShadow(color: Colors.black.withAlpha(5), blurRadius: 10, offset: const Offset(0, 4)),
+                  BoxShadow(
+                      color: Colors.black.withAlpha(5),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4)),
                 ],
               ),
               child: Column(
                 children: [
                   ListTile(
-                    leading: const Icon(Icons.person_outline, color: AppColors.primary),
-                    title: const Text('Edit Profile', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-                    trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.textHint),
+                    leading: const Icon(Icons.person_outline,
+                        color: AppColors.primary),
+                    title: const Text('Edit Profile',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary)),
+                    trailing: const Icon(Icons.arrow_forward_ios,
+                        size: 16, color: AppColors.textHint),
                     onTap: () {
                       context.push(AppRoutes.editProfile);
                     },
                   ),
                   _buildDivider(),
                   ListTile(
-                    leading: const Icon(Icons.flag_outlined, color: AppColors.primary),
-                    title: const Text('My Goals', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-                    trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.textHint),
+                    leading: const Icon(Icons.flag_outlined,
+                        color: AppColors.primary),
+                    title: const Text('My Goals',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary)),
+                    trailing: const Icon(Icons.arrow_forward_ios,
+                        size: 16, color: AppColors.textHint),
                     onTap: () => context.push(AppRoutes.goals),
                   ),
                   _buildDivider(),
                   ListTile(
-                    leading: const Icon(Icons.notifications_none, color: AppColors.primary),
-                    title: const Text('Notifications', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-                    trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.textHint),
+                    leading: const Icon(Icons.notifications_none,
+                        color: AppColors.primary),
+                    title: const Text('Notifications',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary)),
+                    trailing: const Icon(Icons.arrow_forward_ios,
+                        size: 16, color: AppColors.textHint),
                     onTap: () => context.push(AppRoutes.notifications),
                   ),
                   _buildDivider(),
                   ListTile(
                     leading: const Icon(Icons.share, color: AppColors.primary),
-                    title: const Text('Share Health Data', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-                    trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.textHint),
+                    title: const Text('Share Health Data',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary)),
+                    trailing: const Icon(Icons.arrow_forward_ios,
+                        size: 16, color: AppColors.textHint),
                     onTap: () => context.push(AppRoutes.shareHealth),
                   ),
                   _buildDivider(),
                   ListTile(
-                    leading: const Icon(Icons.calendar_today, color: AppColors.primary),
-                    title: const Text('Appointments', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-                    trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.textHint),
-                    onTap: () => context.push(AppRoutes.appointments),
+                    leading: const Icon(Icons.calendar_today,
+                        color: AppColors.primary),
+                    title: const Text('Appointments',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary)),
+                    trailing: const Icon(Icons.arrow_forward_ios,
+                        size: 16, color: AppColors.textHint),
+                    onTap: () => context.push(AppRoutes.healthcareInteraction),
                   ),
                   _buildDivider(),
                   ListTile(
-                    leading: const Icon(Icons.settings, color: AppColors.primary),
-                    title: const Text('Settings', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-                    trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.textHint),
+                    leading:
+                        const Icon(Icons.settings, color: AppColors.primary),
+                    title: const Text('Settings',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary)),
+                    trailing: const Icon(Icons.arrow_forward_ios,
+                        size: 16, color: AppColors.textHint),
                     onTap: () => context.push(AppRoutes.settings),
                   ),
                   _buildDivider(),
                   // Logout Button
                   ListTile(
                     leading: const Icon(Icons.logout, color: AppColors.error),
-                    title: const Text(
-                      'Log Out', 
-                      style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.error)
-                    ),
+                    title: const Text('Log Out',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.error)),
                     onTap: () {
                       auth.signOut();
                     },
@@ -256,7 +292,8 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildAchievementBadge(BuildContext context, String title, String emoji, Color color) {
+  Widget _buildAchievementBadge(
+      BuildContext context, String title, String emoji, Color color) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
       decoration: BoxDecoration(
@@ -264,7 +301,10 @@ class ProfileScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: color.withAlpha(50), width: 2),
         boxShadow: [
-          BoxShadow(color: color.withAlpha(10), blurRadius: 10, offset: const Offset(0, 4)),
+          BoxShadow(
+              color: color.withAlpha(10),
+              blurRadius: 10,
+              offset: const Offset(0, 4)),
         ],
       ),
       child: Column(
@@ -287,13 +327,20 @@ class ProfileScreen extends StatelessWidget {
   Widget _buildMenuTile(BuildContext context, String title, IconData icon) {
     return ListTile(
       leading: Icon(icon, color: AppColors.primary),
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-      trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.textHint),
+      title: Text(title,
+          style: const TextStyle(
+              fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+      trailing: const Icon(Icons.arrow_forward_ios,
+          size: 16, color: AppColors.textHint),
       onTap: () {},
     );
   }
 
   Widget _buildDivider() {
-    return Divider(height: 1, indent: 56, endIndent: 20, color: AppColors.textHint.withAlpha(50));
+    return Divider(
+        height: 1,
+        indent: 56,
+        endIndent: 20,
+        color: AppColors.textHint.withAlpha(50));
   }
 }
