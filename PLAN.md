@@ -386,7 +386,7 @@ Phase 8  🔲  Activity Tracker
 
 Phase 9  🔲  Diet Log / Nutrition
 
-Phase 10 🔲  Virtual Companion — AI chat with Claude API
+Phase 10 🔲  Virtual Companion — AI chat with Claude API //
 
 Phase 11 🔲  Goals & Achievements
 
@@ -396,11 +396,11 @@ Phase 13 🔲  Notifications
 
 Phase 14 🔲  Profile + Edit Profile
 
-Phase 15 🔲  Menstrual Cycle Tracker
+Phase 15 🔲  Menstrual Cycle Tracker //
 
-Phase 16 🔲  Share Health Data
+Phase 16 🔲  Share Health Data // cant share with (share to social media func)
 
-Phase 17 🔲  Chat with Healthcare Provider (separate login)
+Phase 17 🔲  Chat with Healthcare Provider (separate login) //
 
 Phase 18 🔲  Settings (Language, Feedback, About Us, Goals, Account)
 
@@ -408,5 +408,5 @@ Phase 19 🔲  Locate Nearest Hospital (Maps)
 
 Phase 20 🔲  Data Synchronization
 
-Phase 21 🔲  Web responsive polish + final testing
+Phase 21 🔲  Web responsive polish + final testing //fix the layout for web
 ```
