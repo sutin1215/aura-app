@@ -11,26 +11,23 @@ class FirestoreService {
   // ── Today's Metrics ────────────────────────────────────────────────────────
 
   Stream<HealthDay> streamTodayMetrics(String userId) {
-    final String todayId = _getTodayId();
+    final todayId = _getTodayId();
     return _db
         .collection('users')
         .doc(userId)
         .collection('metrics')
         .doc(todayId)
         .snapshots()
-        .map((snapshot) {
-      if (snapshot.exists) {
-        return HealthDay.fromFirestore(snapshot);
-      } else {
-        return HealthDay(id: todayId, date: DateTime.now());
-      }
-    });
+        .map((snap) => snap.exists
+            ? HealthDay.fromFirestore(snap)
+            : HealthDay(id: todayId, date: DateTime.now()));
   }
 
   Future<void> updateMetric({
     required String userId,
     int? steps,
     int? caloriesBurned,
+    int? caloriesConsumed,
     int? waterIntakeMl,
     int? sleepMinutes,
     int? heartRate,
@@ -41,43 +38,69 @@ class FirestoreService {
     double? oxygenSaturation,
     int? activeMinutes,
   }) async {
-    final String todayId = _getTodayId();
     final docRef = _db
         .collection('users')
         .doc(userId)
         .collection('metrics')
-        .doc(todayId);
+        .doc(_getTodayId());
 
-    Map<String, dynamic> data = {};
-    if (steps != null) data['steps'] = FieldValue.increment(steps);
-    if (caloriesBurned != null) data['caloriesBurned'] = FieldValue.increment(caloriesBurned);
-    if (waterIntakeMl != null) data['waterIntakeMl'] = FieldValue.increment(waterIntakeMl);
-    if (sleepMinutes != null) data['sleepMinutes'] = FieldValue.increment(sleepMinutes);
-    if (activeMinutes != null) data['activeMinutes'] = FieldValue.increment(activeMinutes);
-    if (heartRate != null) data['heartRate'] = heartRate;
-    if (weight != null) data['weight'] = weight;
-    if (bloodPressureSystolic != null) data['bloodPressureSystolic'] = bloodPressureSystolic;
-    if (bloodPressureDiastolic != null) data['bloodPressureDiastolic'] = bloodPressureDiastolic;
-    if (bloodGlucose != null) data['bloodGlucose'] = bloodGlucose;
-    if (oxygenSaturation != null) data['oxygenSaturation'] = oxygenSaturation;
+    final Map<String, dynamic> data = {};
+
+    if (steps != null) {
+      data['steps'] = FieldValue.increment(steps);
+    }
+    if (caloriesBurned != null) {
+      data['caloriesBurned'] = FieldValue.increment(caloriesBurned);
+    }
+    if (caloriesConsumed != null) {
+      data['caloriesConsumed'] = FieldValue.increment(caloriesConsumed);
+    }
+    if (waterIntakeMl != null) {
+      data['waterIntakeMl'] = FieldValue.increment(waterIntakeMl);
+    }
+    if (sleepMinutes != null) {
+      data['sleepMinutes'] = FieldValue.increment(sleepMinutes);
+    }
+    if (activeMinutes != null) {
+      data['activeMinutes'] = FieldValue.increment(activeMinutes);
+    }
+
+    if (heartRate != null) {
+      data['heartRate'] = heartRate;
+    }
+    if (weight != null) {
+      data['weight'] = weight;
+    }
+    if (bloodPressureSystolic != null) {
+      data['bloodPressureSystolic'] = bloodPressureSystolic;
+    }
+    if (bloodPressureDiastolic != null) {
+      data['bloodPressureDiastolic'] = bloodPressureDiastolic;
+    }
+    if (bloodGlucose != null) {
+      data['bloodGlucose'] = bloodGlucose;
+    }
+    if (oxygenSaturation != null) {
+      data['oxygenSaturation'] = oxygenSaturation;
+    }
+
     data['date'] = FieldValue.serverTimestamp();
-
     await docRef.set(data, SetOptions(merge: true));
   }
 
   // ── Historical Metrics ─────────────────────────────────────────────────────
 
   Stream<List<HealthDay>> streamHistoricalMetrics(String userId, int daysBack) {
-    final DateTime cutoffDate = DateTime.now().subtract(Duration(days: daysBack));
+    final cutoff = DateTime.now().subtract(Duration(days: daysBack));
     return _db
         .collection('users')
         .doc(userId)
         .collection('metrics')
-        .where('date', isGreaterThanOrEqualTo: cutoffDate)
+        .where('date', isGreaterThanOrEqualTo: cutoff)
         .orderBy('date', descending: true)
         .snapshots()
-        .map((snapshot) =>
-            snapshot.docs.map((doc) => HealthDay.fromFirestore(doc)).toList());
+        .map((snap) =>
+            snap.docs.map((doc) => HealthDay.fromFirestore(doc)).toList());
   }
 
   // ── Reports ────────────────────────────────────────────────────────────────
@@ -89,13 +112,12 @@ class FirestoreService {
         .collection('reports')
         .orderBy('dateUploaded', descending: true)
         .snapshots()
-        .map((snapshot) =>
-            snapshot.docs.map((doc) => HealthReport.fromFirestore(doc)).toList());
+        .map((snap) =>
+            snap.docs.map((doc) => HealthReport.fromFirestore(doc)).toList());
   }
 
   // ── Activities ─────────────────────────────────────────────────────────────
 
-  /// Saves an activity entry and bumps today's steps + calories + activeMinutes
   Future<void> addActivity({
     required String userId,
     required String sportType,
@@ -104,7 +126,7 @@ class FirestoreService {
     required int stepsAdded,
   }) async {
     final now = DateTime.now();
-    final String todayId = DateFormat('yyyy-MM-dd').format(now);
+    final todayId = DateFormat('yyyy-MM-dd').format(now);
 
     await _db
         .collection('users')
@@ -129,7 +151,7 @@ class FirestoreService {
   }
 
   Stream<List<Map<String, dynamic>>> streamTodayActivities(String userId) {
-    final String todayId = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    final todayId = DateFormat('yyyy-MM-dd').format(DateTime.now());
     return _db
         .collection('users')
         .doc(userId)
@@ -138,8 +160,8 @@ class FirestoreService {
         .collection('entries')
         .orderBy('createdAt', descending: false)
         .snapshots()
-        .map((snap) =>
-            snap.docs.map((d) => {'id': d.id, ...d.data()}).toList());
+        .map(
+            (snap) => snap.docs.map((d) => {'id': d.id, ...d.data()}).toList());
   }
 
   Future<void> deleteActivity({
@@ -149,7 +171,7 @@ class FirestoreService {
     required int stepsAdded,
     required int durationMinutes,
   }) async {
-    final String todayId = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    final todayId = DateFormat('yyyy-MM-dd').format(DateTime.now());
     await _db
         .collection('users')
         .doc(userId)
@@ -169,7 +191,6 @@ class FirestoreService {
 
   // ── Meals ──────────────────────────────────────────────────────────────────
 
-  /// Saves a meal entry and bumps today's caloriesBurned
   Future<void> addMeal({
     required String userId,
     required String mealType,
@@ -177,7 +198,7 @@ class FirestoreService {
     required int calories,
   }) async {
     final now = DateTime.now();
-    final String todayId = DateFormat('yyyy-MM-dd').format(now);
+    final todayId = DateFormat('yyyy-MM-dd').format(now);
 
     await _db
         .collection('users')
@@ -192,11 +213,11 @@ class FirestoreService {
       'createdAt': Timestamp.fromDate(now),
     });
 
-    await updateMetric(userId: userId, caloriesBurned: calories);
+    await updateMetric(userId: userId, caloriesConsumed: calories);
   }
 
   Stream<List<Map<String, dynamic>>> streamTodayMeals(String userId) {
-    final String todayId = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    final todayId = DateFormat('yyyy-MM-dd').format(DateTime.now());
     return _db
         .collection('users')
         .doc(userId)
@@ -205,8 +226,8 @@ class FirestoreService {
         .collection('entries')
         .orderBy('createdAt', descending: false)
         .snapshots()
-        .map((snap) =>
-            snap.docs.map((d) => {'id': d.id, ...d.data()}).toList());
+        .map(
+            (snap) => snap.docs.map((d) => {'id': d.id, ...d.data()}).toList());
   }
 
   Future<void> deleteMeal({
@@ -214,7 +235,7 @@ class FirestoreService {
     required String entryId,
     required int calories,
   }) async {
-    final String todayId = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    final todayId = DateFormat('yyyy-MM-dd').format(DateTime.now());
     await _db
         .collection('users')
         .doc(userId)
@@ -224,8 +245,9 @@ class FirestoreService {
         .doc(entryId)
         .delete();
 
-    await updateMetric(userId: userId, caloriesBurned: -calories);
+    await updateMetric(userId: userId, caloriesConsumed: -calories);
   }
+
   // ── Goals ──────────────────────────────────────────────────────────────────
 
   Future<void> addGoal({
@@ -234,11 +256,7 @@ class FirestoreService {
     required String metric,
     required double target,
   }) async {
-    await _db
-        .collection('users')
-        .doc(userId)
-        .collection('goals')
-        .add({
+    await _db.collection('users').doc(userId).collection('goals').add({
       'name': name,
       'metric': metric,
       'target': target,
@@ -253,11 +271,14 @@ class FirestoreService {
         .collection('goals')
         .orderBy('createdAt', descending: false)
         .snapshots()
-        .map((snap) =>
-            snap.docs.map((d) => {'id': d.id, ...d.data()}).toList());
+        .map(
+            (snap) => snap.docs.map((d) => {'id': d.id, ...d.data()}).toList());
   }
 
-  Future<void> deleteGoal({required String userId, required String goalId}) async {
+  Future<void> deleteGoal({
+    required String userId,
+    required String goalId,
+  }) async {
     await _db
         .collection('users')
         .doc(userId)
@@ -268,23 +289,6 @@ class FirestoreService {
 
   // ── Notifications ──────────────────────────────────────────────────────────
 
-  Future<void> addNotification({
-    required String userId,
-    required String title,
-    required String body,
-  }) async {
-    await _db
-        .collection('users')
-        .doc(userId)
-        .collection('notifications')
-        .add({
-      'title': title,
-      'body': body,
-      'isRead': false,
-      'createdAt': DateTime.now().toIso8601String(),
-    });
-  }
-
   Stream<List<Map<String, dynamic>>> streamNotifications(String userId) {
     return _db
         .collection('users')
@@ -292,14 +296,13 @@ class FirestoreService {
         .collection('notifications')
         .orderBy('createdAt', descending: true)
         .snapshots()
-        .map((snap) =>
-            snap.docs.map((d) => {'id': d.id, ...d.data()}).toList());
+        .map(
+            (snap) => snap.docs.map((d) => {'id': d.id, ...d.data()}).toList());
   }
 
-  Future<void> markNotificationRead({
-    required String userId,
-    required String notificationId,
-  }) async {
+  /// Marks a single notification as read.
+  Future<void> markNotificationRead(
+      String userId, String notificationId) async {
     await _db
         .collection('users')
         .doc(userId)
@@ -308,20 +311,23 @@ class FirestoreService {
         .update({'isRead': true});
   }
 
+  /// Marks every notification as read in a single batch write.
   Future<void> markAllNotificationsRead(String userId) async {
-    final batch = _db.batch();
     final snap = await _db
         .collection('users')
         .doc(userId)
         .collection('notifications')
         .where('isRead', isEqualTo: false)
         .get();
+
+    final batch = _db.batch();
     for (final doc in snap.docs) {
       batch.update(doc.reference, {'isRead': true});
     }
     await batch.commit();
   }
 
+  /// Deletes a single notification document.
   Future<void> deleteNotification({
     required String userId,
     required String notificationId,
@@ -333,80 +339,6 @@ class FirestoreService {
         .doc(notificationId)
         .delete();
   }
-  // ── Provider Methods ───────────────────────────────────────────────────────
-
-  /// Get a patient's full profile document
-  Future<Map<String, dynamic>?> getPatientProfile(String patientUid) async {
-    final doc = await _db.collection('users').doc(patientUid).get();
-    if (!doc.exists) return null;
-    return {'id': doc.id, ...doc.data()!};
-  }
-
-  /// Stream the list of patient UIDs assigned to a provider
-  Stream<List<String>> streamPatientIds(String providerUid) {
-    return _db
-        .collection('users')
-        .doc(providerUid)
-        .snapshots()
-        .map((doc) => List<String>.from(doc.data()?['assignedPatientIds'] ?? []));
-  }
-
-  /// Provider adds a text report for a patient
-  Future<void> addReport({
-    required String patientUid,
-    required String providerName,
-    required String title,
-    required String notes,
-  }) async {
-    await _db
-        .collection('users')
-        .doc(patientUid)
-        .collection('reports')
-        .add({
-      'title': title,
-      'notes': notes,
-      'providerName': providerName,
-      'dateUploaded': DateTime.now().toIso8601String(),
-    });
-  }
-
-  /// Stream all reports for a patient (used by both patient Analytics + provider portal)
-  Stream<List<Map<String, dynamic>>> streamPatientReports(String patientUid) {
-    return _db
-        .collection('users')
-        .doc(patientUid)
-        .collection('reports')
-        .orderBy('dateUploaded', descending: true)
-        .snapshots()
-        .map((snap) =>
-            snap.docs.map((d) => {'id': d.id, ...d.data()}).toList());
-  }
-
-  /// Patient enters provider UID to link themselves
-  Future<void> linkPatientToProvider({
-    required String patientUid,
-    required String providerUid,
-  }) async {
-    // Verify provider exists
-    final providerDoc = await _db.collection('users').doc(providerUid).get();
-    if (!providerDoc.exists || providerDoc.data()?['role'] != 'provider') {
-      throw Exception('Provider not found. Please check the Provider ID.');
-    }
-
-    final batch = _db.batch();
-
-    // Set assignedProviderId on patient
-    batch.update(_db.collection('users').doc(patientUid), {
-      'assignedProviderId': providerUid,
-    });
-
-    // Add patientUid to provider's assignedPatientIds
-    batch.update(_db.collection('users').doc(providerUid), {
-      'assignedPatientIds': FieldValue.arrayUnion([patientUid]),
-    });
-
-    await batch.commit();
-  }
 
   // ── Appointments ───────────────────────────────────────────────────────────
 
@@ -414,17 +346,13 @@ class FirestoreService {
     required String userId,
     required String doctorName,
     required DateTime dateTime,
-    required String note,
+    String note = '',
   }) async {
-    await _db
-        .collection('users')
-        .doc(userId)
-        .collection('appointments')
-        .add({
+    await _db.collection('users').doc(userId).collection('appointments').add({
       'doctorName': doctorName,
-      'dateTime': dateTime.toIso8601String(),
+      'dateTime': Timestamp.fromDate(dateTime),
       'note': note,
-      'createdAt': DateTime.now().toIso8601String(),
+      'createdAt': FieldValue.serverTimestamp(),
     });
   }
 
@@ -435,8 +363,8 @@ class FirestoreService {
         .collection('appointments')
         .orderBy('dateTime', descending: false)
         .snapshots()
-        .map((snap) =>
-            snap.docs.map((d) => {'id': d.id, ...d.data()}).toList());
+        .map(
+            (snap) => snap.docs.map((d) => {'id': d.id, ...d.data()}).toList());
   }
 
   Future<void> deleteAppointment({
@@ -459,14 +387,8 @@ class FirestoreService {
     required String text,
     required String senderId,
   }) async {
-    // Generate a consistent chat room ID based on both UIDs
-    final String chatId = '${patientUid}_$providerUid';
-
-    await _db
-        .collection('chats')
-        .doc(chatId)
-        .collection('messages')
-        .add({
+    final chatId = '${patientUid}_$providerUid';
+    await _db.collection('chats').doc(chatId).collection('messages').add({
       'text': text,
       'senderId': senderId,
       'timestamp': FieldValue.serverTimestamp(),
@@ -477,15 +399,91 @@ class FirestoreService {
     required String patientUid,
     required String providerUid,
   }) {
-    final String chatId = '${patientUid}_$providerUid';
-
+    final chatId = '${patientUid}_$providerUid';
     return _db
         .collection('chats')
         .doc(chatId)
         .collection('messages')
         .orderBy('timestamp', descending: true)
         .snapshots()
-        .map((snap) =>
-            snap.docs.map((d) => {'id': d.id, ...d.data()}).toList());
+        .map(
+            (snap) => snap.docs.map((d) => {'id': d.id, ...d.data()}).toList());
+  }
+
+  // ── Provider helpers ───────────────────────────────────────────────────────
+
+  Future<Map<String, dynamic>?> getPatientProfile(String patientUid) async {
+    final doc = await _db.collection('users').doc(patientUid).get();
+    if (!doc.exists) return null;
+    return doc.data();
+  }
+
+  /// Stream of patient UIDs assigned to this provider.
+  /// Used by ProviderDashboardScreen.
+  Stream<List<String>> streamPatientIds(String providerUid) {
+    return _db
+        .collection('users')
+        .where('assignedProviderId', isEqualTo: providerUid)
+        .snapshots()
+        .map((snap) => snap.docs.map((d) => d.id).toList());
+  }
+
+  Future<List<Map<String, dynamic>>> getAssignedPatients(
+      String providerUid) async {
+    final snap = await _db
+        .collection('users')
+        .where('assignedProviderId', isEqualTo: providerUid)
+        .get();
+    return snap.docs.map((d) => {'uid': d.id, ...d.data()}).toList();
+  }
+
+  /// Stream of reports for a specific patient.
+  /// Used by PatientDetailScreen.
+  Stream<List<Map<String, dynamic>>> streamPatientReports(String patientUid) {
+    return _db
+        .collection('users')
+        .doc(patientUid)
+        .collection('reports')
+        .orderBy('dateUploaded', descending: true)
+        .snapshots()
+        .map(
+            (snap) => snap.docs.map((d) => {'id': d.id, ...d.data()}).toList());
+  }
+
+  /// Saves a text-based report for a patient (no PDF upload needed for demo).
+  /// Used by AddReportScreen.
+  Future<void> addReport({
+    required String patientUid,
+    required String providerName,
+    required String title,
+    String notes = '',
+  }) async {
+    await _db.collection('users').doc(patientUid).collection('reports').add({
+      'title': title,
+      'notes': notes,
+      'providerName': providerName,
+      'dateUploaded': DateTime.now().toIso8601String(),
+    });
+  }
+
+  /// Links a patient to a provider by writing assignedProviderId on the
+  /// patient's user document. Used by SettingsScreen.
+  Future<void> linkPatientToProvider({
+    required String patientUid,
+    required String providerUid,
+  }) async {
+    // Verify the provider exists first
+    final providerDoc = await _db.collection('users').doc(providerUid).get();
+    if (!providerDoc.exists) {
+      throw Exception('Provider ID not found. Please check and try again.');
+    }
+    final providerData = providerDoc.data();
+    if (providerData?['role'] != 'provider') {
+      throw Exception('That ID does not belong to a healthcare provider.');
+    }
+
+    await _db.collection('users').doc(patientUid).update({
+      'assignedProviderId': providerUid,
+    });
   }
 }

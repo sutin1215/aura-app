@@ -9,13 +9,17 @@ class AppColors {
   static const primaryLight = Color(0xFFB39DDB);
 
   // Gradient
-  static const gradientStart = Color(0xFF8ED6FF);
-  static const gradientEnd = Color(0xFFB18CFE);
+  static const gradientStart = Color(0xFF9B87F5);
+  static const gradientEnd = Color(0xFFD4AAFF);
 
   // Backgrounds
-  static const background = Color(0xFFF7F7FB);
+  static const background = Color(0xFFEDE7FF);
   static const surface = Colors.white;
   static const cardBg = Color(0xFFF0EEFF);
+
+  // Borders  ← FIX: was missing, caused errors in 4+ files
+  static const border = Color(0xFFDDD6F3);
+  static const cardBorder = Color(0xFFEEE8FF);
 
   // Text
   static const textPrimary = Color(0xFF1A1A2E);
@@ -154,7 +158,7 @@ class AppTheme {
 
       // ── Bottom Nav ─────────────────────────────────────────────────────────
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-        backgroundColor: AppColors.surface,
+        backgroundColor: Colors.white,
         selectedItemColor: AppColors.primary,
         unselectedItemColor: AppColors.textHint,
         type: BottomNavigationBarType.fixed,
@@ -179,6 +183,15 @@ class AppTheme {
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
       colors: [AppColors.gradientStart, AppColors.gradientEnd],
+    ),
+  );
+
+  // ── Full screen gradient background ────────────────────────────────────────
+  static const BoxDecoration scaffoldGradient = BoxDecoration(
+    gradient: LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [Color(0xFF9B87F5), Color(0xFFCFB3FF)],
     ),
   );
 }

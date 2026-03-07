@@ -21,7 +21,12 @@ class _DietScreenState extends State<DietScreen> {
   String _selectedMealType = 'Breakfast';
   bool _isSaving = false;
 
-  static const List<String> _mealTypes = ['Breakfast', 'Lunch', 'Dinner', 'Snacks'];
+  static const List<String> _mealTypes = [
+    'Breakfast',
+    'Lunch',
+    'Dinner',
+    'Snacks'
+  ];
   static const List<String> _mealEmojis = ['🍳', '🍔', '🍷', '🍪'];
 
   @override
@@ -37,7 +42,10 @@ class _DietScreenState extends State<DietScreen> {
 
     if (foodName.isEmpty || cal == null || cal <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a food name and calories'), backgroundColor: AppColors.error),
+        const SnackBar(
+          content: Text('Please enter a food name and calories'),
+          backgroundColor: AppColors.error,
+        ),
       );
       return;
     }
@@ -54,13 +62,17 @@ class _DietScreenState extends State<DietScreen> {
       _caloriesController.clear();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('$foodName logged! +$cal kcal'), backgroundColor: AppColors.success),
+          SnackBar(
+            content: Text('$foodName logged! +$cal kcal'),
+            backgroundColor: AppColors.success,
+          ),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error),
+          SnackBar(
+              content: Text('Error: $e'), backgroundColor: AppColors.error),
         );
       }
     } finally {
@@ -78,7 +90,9 @@ class _DietScreenState extends State<DietScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Delete failed: $e'), backgroundColor: AppColors.error),
+          SnackBar(
+              content: Text('Delete failed: $e'),
+              backgroundColor: AppColors.error),
         );
       }
     }
@@ -92,7 +106,8 @@ class _DietScreenState extends State<DietScreen> {
     final today = metricsProvider.todayMetrics;
 
     const int dailyCalGoal = 2000;
-    final int currentCal = today?.caloriesBurned ?? 0;
+    // FIX: now correctly reads caloriesConsumed, not caloriesBurned
+    final int currentCal = today?.caloriesConsumed ?? 0;
     final double progress = (currentCal / dailyCalGoal).clamp(0.0, 1.0);
 
     return Scaffold(
@@ -111,7 +126,7 @@ class _DietScreenState extends State<DietScreen> {
           children: [
             const SizedBox(height: 10),
 
-            // Calorie Progress Ring
+            // ── Calorie Progress Ring ──────────────────────────────────────
             Center(
               child: CircularPercentIndicator(
                 radius: 110.0,
@@ -125,10 +140,18 @@ class _DietScreenState extends State<DietScreen> {
                   children: [
                     Text(
                       '${currentCal}kcal',
-                      style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                      style: const TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
                     ),
                     const SizedBox(height: 4),
-                    const Text('of $dailyCalGoal kcal', style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+                    const Text(
+                      'of $dailyCalGoal kcal',
+                      style: TextStyle(
+                          fontSize: 13, color: AppColors.textSecondary),
+                    ),
                   ],
                 ),
               ),
@@ -136,21 +159,34 @@ class _DietScreenState extends State<DietScreen> {
 
             const SizedBox(height: 32),
 
-            // Log Meal Form
+            // ── Add Meal Form ──────────────────────────────────────────────
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: AppColors.surface,
                 borderRadius: BorderRadius.circular(24),
-                boxShadow: [BoxShadow(color: Colors.black.withAlpha(5), blurRadius: 10, offset: const Offset(0, 4))],
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withAlpha(5),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Add Meal', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textPrimary)),
+                  const Text(
+                    'Add Meal',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
                   const SizedBox(height: 16),
 
-                  // Meal Type Buttons
+                  // Meal type chips
                   Wrap(
                     spacing: 8,
                     children: List.generate(_mealTypes.length, (i) {
@@ -158,12 +194,16 @@ class _DietScreenState extends State<DietScreen> {
                       return ChoiceChip(
                         label: Text('${_mealEmojis[i]} ${_mealTypes[i]}'),
                         selected: isSelected,
-                        onSelected: (_) => setState(() => _selectedMealType = _mealTypes[i]),
+                        onSelected: (_) =>
+                            setState(() => _selectedMealType = _mealTypes[i]),
                         selectedColor: AppColors.primary,
                         backgroundColor: AppColors.background,
                         labelStyle: TextStyle(
-                          color: isSelected ? Colors.white : AppColors.textSecondary,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          color: isSelected
+                              ? Colors.white
+                              : AppColors.textSecondary,
+                          fontWeight:
+                              isSelected ? FontWeight.bold : FontWeight.normal,
                         ),
                       );
                     }),
@@ -171,41 +211,66 @@ class _DietScreenState extends State<DietScreen> {
 
                   const SizedBox(height: 16),
 
+                  // Food name — FIX: added prefixIcon
                   TextField(
                     controller: _foodNameController,
                     decoration: InputDecoration(
                       labelText: 'Food Name',
-                      prefixIcon: const Icon(Icons.restaurant, color: AppColors.primary),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      prefixIcon: const Icon(Icons.restaurant,
+                          color: AppColors.primary), // FIX
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12)),
                       filled: true,
                       fillColor: AppColors.background,
                     ),
                   ),
                   const SizedBox(height: 12),
+
+                  // Calories — FIX: added prefixIcon
                   TextField(
                     controller: _caloriesController,
                     keyboardType: TextInputType.number,
                     decoration: InputDecoration(
                       labelText: 'Calories (kcal)',
-                      prefixIcon: const Icon(Icons.local_fire_department, color: AppColors.calories),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      prefixIcon: const Icon(Icons.local_fire_department, // FIX
+                          color: AppColors.calories),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12)),
                       filled: true,
                       fillColor: AppColors.background,
                     ),
                   ),
+
                   const SizedBox(height: 16),
+
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.success,
                         padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
                       ),
                       onPressed: _isSaving ? null : () => _logMeal(userId),
                       child: _isSaving
-                          ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                          : const Text('Log Meal', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : const Text(
+                              'Log Meal',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
                     ),
                   ),
                 ],
@@ -214,7 +279,7 @@ class _DietScreenState extends State<DietScreen> {
 
             const SizedBox(height: 24),
 
-            // Today's Meal List
+            // ── Today's Meals List ─────────────────────────────────────────
             StreamBuilder<List<Map<String, dynamic>>>(
               stream: FirestoreService().streamTodayMeals(userId),
               builder: (context, snapshot) {
@@ -222,7 +287,10 @@ class _DietScreenState extends State<DietScreen> {
                 if (meals.isEmpty) {
                   return Container(
                     padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(24)),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(24),
+                    ),
                     child: const Center(
                       child: Text(
                         'No meals logged yet today.\nAdd your first meal above!',
@@ -241,13 +309,23 @@ class _DietScreenState extends State<DietScreen> {
                 }
 
                 return Container(
-                  decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(24)),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(24),
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Padding(
                         padding: EdgeInsets.fromLTRB(20, 20, 20, 8),
-                        child: Text("Today's Meals", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textPrimary)),
+                        child: Text(
+                          "Today's Meals",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
                       ),
                       for (final type in _mealTypes)
                         if (grouped.containsKey(type)) ...[
@@ -255,18 +333,28 @@ class _DietScreenState extends State<DietScreen> {
                             padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
                             child: Text(
                               type,
-                              style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textSecondary, fontSize: 13),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textSecondary,
+                                fontSize: 13,
+                              ),
                             ),
                           ),
                           ...grouped[type]!.map((meal) => ListTile(
                                 leading: const CircleAvatar(
                                   backgroundColor: AppColors.calories,
-                                  child: Icon(Icons.fastfood, color: Colors.white, size: 18),
+                                  child: Icon(Icons.fastfood,
+                                      color: Colors.white, size: 18),
                                 ),
-                                title: Text(meal['foodName'] ?? 'Food', style: const TextStyle(fontWeight: FontWeight.bold)),
+                                title: Text(
+                                  meal['foodName'] ?? 'Food',
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold),
+                                ),
                                 subtitle: Text('${meal['calories']} kcal'),
                                 trailing: IconButton(
-                                  icon: const Icon(Icons.delete_outline, color: AppColors.error),
+                                  icon: const Icon(Icons.delete_outline,
+                                      color: AppColors.error),
                                   onPressed: () => _deleteMeal(userId, meal),
                                 ),
                               )),

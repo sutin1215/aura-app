@@ -11,7 +11,8 @@ class NotificationsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final userId = Provider.of<AuthProvider>(context, listen: false).user?.uid ?? '';
+    final userId =
+        Provider.of<AuthProvider>(context, listen: false).user?.uid ?? '';
     final db = FirestoreService();
 
     return Scaffold(
@@ -23,7 +24,8 @@ class NotificationsScreen extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => db.markAllNotificationsRead(userId),
-            child: const Text('Mark all read', style: TextStyle(color: AppColors.primary)),
+            child: const Text('Mark all read',
+                style: TextStyle(color: AppColors.primary)),
           ),
         ],
       ),
@@ -41,11 +43,17 @@ class NotificationsScreen extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.notifications_none, size: 80, color: AppColors.textHint.withAlpha(100)),
+                  Icon(Icons.notifications_none,
+                      size: 80, color: AppColors.textHint.withAlpha(100)),
                   const SizedBox(height: 16),
-                  const Text("You're all caught up!", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                  const Text("You're all caught up!",
+                      style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary)),
                   const SizedBox(height: 8),
-                  const Text('No notifications yet', style: TextStyle(color: AppColors.textSecondary)),
+                  const Text('No notifications yet',
+                      style: TextStyle(color: AppColors.textSecondary)),
                 ],
               ),
             );
@@ -54,7 +62,8 @@ class NotificationsScreen extends StatelessWidget {
           return ListView.separated(
             padding: const EdgeInsets.symmetric(vertical: 8),
             itemCount: notifications.length,
-            separatorBuilder: (_, __) => const Divider(height: 1, indent: 72, endIndent: 16),
+            separatorBuilder: (_, __) =>
+                const Divider(height: 1, indent: 72, endIndent: 16),
             itemBuilder: (context, index) {
               final notif = notifications[index];
               final isRead = notif['isRead'] as bool? ?? false;
@@ -73,11 +82,12 @@ class NotificationsScreen extends StatelessWidget {
                   color: AppColors.error,
                   child: const Icon(Icons.delete, color: Colors.white),
                 ),
-                onDismissed: (_) => db.deleteNotification(userId: userId, notificationId: notif['id']),
+                onDismissed: (_) => db.deleteNotification(
+                    userId: userId, notificationId: notif['id']),
                 child: ListTile(
                   onTap: () {
                     if (!isRead) {
-                      db.markNotificationRead(userId: userId, notificationId: notif['id']);
+                      db.markNotificationRead(userId, notif['id']);
                     }
                   },
                   leading: CircleAvatar(
@@ -85,7 +95,9 @@ class NotificationsScreen extends StatelessWidget {
                         ? AppColors.surface
                         : AppColors.primary.withAlpha(30),
                     child: Icon(
-                      isRead ? Icons.notifications_none : Icons.notifications_active,
+                      isRead
+                          ? Icons.notifications_none
+                          : Icons.notifications_active,
                       color: isRead ? AppColors.textHint : AppColors.primary,
                     ),
                   ),
@@ -99,11 +111,14 @@ class NotificationsScreen extends StatelessWidget {
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(body, style: const TextStyle(color: AppColors.textSecondary)),
+                      Text(body,
+                          style:
+                              const TextStyle(color: AppColors.textSecondary)),
                       if (createdAt != null)
                         Text(
                           DateFormat('MMM d · h:mm a').format(createdAt),
-                          style: const TextStyle(fontSize: 11, color: AppColors.textHint),
+                          style: const TextStyle(
+                              fontSize: 11, color: AppColors.textHint),
                         ),
                     ],
                   ),

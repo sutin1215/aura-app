@@ -86,7 +86,8 @@ class _PatientChatScreenState extends State<PatientChatScreen> {
                 return ListView.builder(
                   controller: _scrollController,
                   reverse: true,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
                   itemCount: messages.length,
                   itemBuilder: (context, index) {
                     final msg = messages[index];
@@ -94,17 +95,21 @@ class _PatientChatScreenState extends State<PatientChatScreen> {
                     final timeStr = _formatTime(msg['timestamp']);
 
                     return Align(
-                      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+                      alignment:
+                          isMe ? Alignment.centerRight : Alignment.centerLeft,
                       child: Container(
                         margin: const EdgeInsets.only(bottom: 12),
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 12),
                         decoration: BoxDecoration(
                           color: isMe ? AppColors.primary : Colors.white,
                           borderRadius: BorderRadius.only(
                             topLeft: const Radius.circular(16),
                             topRight: const Radius.circular(16),
-                            bottomLeft: isMe ? const Radius.circular(16) : Radius.zero,
-                            bottomRight: isMe ? Radius.zero : const Radius.circular(16),
+                            bottomLeft:
+                                isMe ? const Radius.circular(16) : Radius.zero,
+                            bottomRight:
+                                isMe ? Radius.zero : const Radius.circular(16),
                           ),
                           boxShadow: [
                             BoxShadow(
@@ -120,7 +125,8 @@ class _PatientChatScreenState extends State<PatientChatScreen> {
                             Text(
                               msg['text'] ?? '',
                               style: TextStyle(
-                                color: isMe ? Colors.white : AppColors.textPrimary,
+                                color:
+                                    isMe ? Colors.white : AppColors.textPrimary,
                                 fontSize: 16,
                               ),
                             ),
@@ -141,7 +147,7 @@ class _PatientChatScreenState extends State<PatientChatScreen> {
               },
             ),
           ),
-          
+
           // Message Input Field
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -169,7 +175,8 @@ class _PatientChatScreenState extends State<PatientChatScreen> {
                         ),
                         filled: true,
                         fillColor: AppColors.background,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 20, vertical: 12),
                       ),
                       textInputAction: TextInputAction.send,
                       onSubmitted: (_) => _sendMessage(providerUid),

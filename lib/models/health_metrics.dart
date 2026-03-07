@@ -1,14 +1,16 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class HealthDay {
-  final String id; // Typically the date string 'YYYY-MM-DD'
+  final String id;
   final DateTime date;
   final int steps;
-  final int caloriesBurned;
+  final int caloriesBurned; // calories burned via exercise/activity
+  final int
+      caloriesConsumed; // FIX: was missing — meals were wrongly adding to caloriesBurned
   final int waterIntakeMl;
   final int sleepMinutes;
-  
-  // New Vitals (Phase 6)
+
+  // Vitals
   final int heartRate;
   final double weight;
   final int bloodPressureSystolic;
@@ -22,6 +24,7 @@ class HealthDay {
     required this.date,
     this.steps = 0,
     this.caloriesBurned = 0,
+    this.caloriesConsumed = 0,
     this.waterIntakeMl = 0,
     this.sleepMinutes = 0,
     this.heartRate = 0,
@@ -33,14 +36,14 @@ class HealthDay {
     this.activeMinutes = 0,
   });
 
-  // Serialization from Firestore
   factory HealthDay.fromFirestore(DocumentSnapshot doc) {
-    Map data = doc.data() as Map<String, dynamic>;
+    final data = doc.data() as Map<String, dynamic>;
     return HealthDay(
       id: doc.id,
       date: (data['date'] as Timestamp).toDate(),
       steps: data['steps'] ?? 0,
       caloriesBurned: data['caloriesBurned'] ?? 0,
+      caloriesConsumed: data['caloriesConsumed'] ?? 0,
       waterIntakeMl: data['waterIntakeMl'] ?? 0,
       sleepMinutes: data['sleepMinutes'] ?? 0,
       heartRate: data['heartRate'] ?? 0,
@@ -53,12 +56,12 @@ class HealthDay {
     );
   }
 
-  // Serialization to Firestore
   Map<String, dynamic> toMap() {
     return {
       'date': Timestamp.fromDate(date),
       'steps': steps,
       'caloriesBurned': caloriesBurned,
+      'caloriesConsumed': caloriesConsumed,
       'waterIntakeMl': waterIntakeMl,
       'sleepMinutes': sleepMinutes,
       'heartRate': heartRate,
@@ -71,10 +74,10 @@ class HealthDay {
     };
   }
 
-  // Utility to copy with new values immutably
   HealthDay copyWith({
     int? steps,
     int? caloriesBurned,
+    int? caloriesConsumed,
     int? waterIntakeMl,
     int? sleepMinutes,
     int? heartRate,
@@ -90,12 +93,15 @@ class HealthDay {
       date: date,
       steps: steps ?? this.steps,
       caloriesBurned: caloriesBurned ?? this.caloriesBurned,
+      caloriesConsumed: caloriesConsumed ?? this.caloriesConsumed,
       waterIntakeMl: waterIntakeMl ?? this.waterIntakeMl,
       sleepMinutes: sleepMinutes ?? this.sleepMinutes,
       heartRate: heartRate ?? this.heartRate,
       weight: weight ?? this.weight,
-      bloodPressureSystolic: bloodPressureSystolic ?? this.bloodPressureSystolic,
-      bloodPressureDiastolic: bloodPressureDiastolic ?? this.bloodPressureDiastolic,
+      bloodPressureSystolic:
+          bloodPressureSystolic ?? this.bloodPressureSystolic,
+      bloodPressureDiastolic:
+          bloodPressureDiastolic ?? this.bloodPressureDiastolic,
       bloodGlucose: bloodGlucose ?? this.bloodGlucose,
       oxygenSaturation: oxygenSaturation ?? this.oxygenSaturation,
       activeMinutes: activeMinutes ?? this.activeMinutes,
