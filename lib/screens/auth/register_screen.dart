@@ -178,8 +178,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     prefixIcon: Icons.person_outline,
                     controller: _nameController,
                     validator: (val) {
-                      if (_isProvider && (val == null || val.isEmpty))
+                      if (_isProvider && (val == null || val.isEmpty)) {
                         return 'Name is required';
+                      }
                       return null;
                     },
                   ),
@@ -190,8 +191,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     prefixIcon: Icons.medical_services_outlined,
                     controller: _specialtyController,
                     validator: (val) {
-                      if (_isProvider && (val == null || val.isEmpty))
+                      if (_isProvider && (val == null || val.isEmpty)) {
                         return 'Specialty is required';
+                      }
                       return null;
                     },
                   ),

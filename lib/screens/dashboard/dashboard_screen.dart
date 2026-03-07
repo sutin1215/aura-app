@@ -6,7 +6,6 @@ import '../../providers/auth_provider.dart';
 import '../../providers/metrics_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/metric_card.dart';
-import '../health/health_data_screen.dart';
 import '../../routes/app_router.dart';
 
 String _getGreeting() {
@@ -17,12 +16,19 @@ String _getGreeting() {
 }
 
 String _getAuraInsight(int steps, int waterMl, int sleepMinutes) {
-  final hour = DateTime.now().hour;
-  if (steps < 3000) return "Start your day with a short walk — even 10 minutes makes a difference! 🚶";
-  if (waterMl < 500) return "Don't forget to hydrate! Aim for at least 2L of water today. 💧";
-  if (sleepMinutes < 360 && hour > 20) return "Getting 7–8 hours of sleep is key to recovery. Try to rest soon! 😴";
-  if (steps > 8000) return "Excellent work — you're almost at your step goal! Keep it up! 🔥";
-  return "Looking good! Keep logging your health data to stay on track with AURA!";
+  if (steps < 3000) {
+    return "Start your day with a short walk — even 10 minutes makes a difference! 🚶";
+  }
+  if (waterMl < 500) {
+    return "Don't forget to hydrate! Aim for at least 2L of water today. 💧";
+  }
+  if (sleepMinutes < 360 && DateTime.now().hour > 20) {
+    return "Getting 7–8 hours of sleep is key to recovery. Try to rest soon! 😴";
+  }
+  if (steps > 8000) {
+    return "Excellent work — you're almost at your step goal! Keep it up! 🔥";
+  }
+  return "Looking good! Keep logging your health data to stay on track with AURA! ✨";
 }
 
 class DashboardScreen extends StatelessWidget {
@@ -31,18 +37,18 @@ class DashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthProvider>(context);
-    final user = auth.user;
-    
-    // Listen to live metrics
     final metricsProvider = Provider.of<MetricsProvider>(context);
     final today = metricsProvider.todayMetrics;
+    final username = auth.userProfile?.username ??
+        auth.user?.email?.split('@')[0] ??
+        'Explorer';
 
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
-            // Custom App Bar
+            // ── App Bar ─────────────────────────────────────────────────────
             SliverAppBar(
               floating: true,
               backgroundColor: AppColors.background,
@@ -50,17 +56,15 @@ class DashboardScreen extends StatelessWidget {
               centerTitle: false,
               title: Row(
                 children: [
-                  Image.asset('assets/images/logo.png', height: 65),
+                  Image.asset('assets/images/logo.png', height: 56),
                   const SizedBox(width: 12),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      Text(_getGreeting(),
+                          style: Theme.of(context).textTheme.bodyMedium),
                       Text(
-                        _getGreeting(),
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
-                      Text(
-                        auth.userProfile?.username ?? user?.email?.split('@')[0] ?? 'Explorer',
+                        username,
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
@@ -79,11 +83,12 @@ class DashboardScreen extends StatelessWidget {
                       BoxShadow(
                         color: AppColors.primary.withAlpha(20),
                         blurRadius: 8,
-                      )
+                      ),
                     ],
                   ),
                   child: IconButton(
-                    icon: const Icon(Icons.notifications_outlined, color: AppColors.textPrimary),
+                    icon: const Icon(Icons.notifications_outlined,
+                        color: AppColors.textPrimary),
                     onPressed: () => context.push(AppRoutes.notifications),
                   ),
                 ),
@@ -92,11 +97,11 @@ class DashboardScreen extends StatelessWidget {
 
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.all(20.0),
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // AURA Companion Tip
+                    // ── AURA Insight Card ──────────────────────────────────
                     Container(
                       padding: const EdgeInsets.all(20),
                       decoration: AppTheme.gradientBox.copyWith(
@@ -117,7 +122,8 @@ class DashboardScreen extends StatelessWidget {
                               color: Colors.white.withAlpha(50),
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(Icons.smart_toy, color: Colors.white, size: 28),
+                            child: const Icon(Icons.smart_toy,
+                                color: Colors.white, size: 28),
                           ),
                           const SizedBox(width: 16),
                           Expanded(
@@ -126,7 +132,10 @@ class DashboardScreen extends StatelessWidget {
                               children: [
                                 Text(
                                   'AURA Insight',
-                                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium
+                                      ?.copyWith(
                                         color: Colors.white,
                                         fontWeight: FontWeight.bold,
                                       ),
@@ -138,7 +147,10 @@ class DashboardScreen extends StatelessWidget {
                                     today?.waterIntakeMl ?? 0,
                                     today?.sleepMinutes ?? 0,
                                   ),
-                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.copyWith(
                                         color: Colors.white.withAlpha(220),
                                         height: 1.4,
                                       ),
@@ -149,16 +161,14 @@ class DashboardScreen extends StatelessWidget {
                         ],
                       ),
                     ),
+
                     const SizedBox(height: 32),
 
-                    // Metrics Header
-                    Text(
-                      'Today\'s Activity',
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
+                    // ── Today's Activity ───────────────────────────────────
+                    Text("Today's Activity",
+                        style: Theme.of(context).textTheme.titleLarge),
                     const SizedBox(height: 16),
 
-                    // Metrics Grid
                     GridView.count(
                       crossAxisCount: 2,
                       crossAxisSpacing: 16,
@@ -169,129 +179,156 @@ class DashboardScreen extends StatelessWidget {
                       children: [
                         MetricCard(
                           title: 'Steps',
-                          value: today?.steps.toString() ?? '0',
+                          value: (today?.steps ?? 0).toString(),
                           unit: '/ 10k',
                           icon: Icons.directions_walk,
                           color: AppColors.steps,
                           progress: (today?.steps ?? 0) / 10000,
+                          onTap: () => context.push(AppRoutes.activity),
                         ),
                         MetricCard(
-                          title: 'Calories',
-                          value: today?.caloriesBurned.toString() ?? '0',
+                          title: 'Calories Burned',
+                          value: (today?.caloriesBurned ?? 0).toString(),
                           unit: 'kcal',
                           icon: Icons.local_fire_department,
                           color: AppColors.calories,
-                          progress: (today?.caloriesBurned ?? 0) / 2500, // example goal
+                          progress: (today?.caloriesBurned ?? 0) / 600,
+                          onTap: () => context.push(AppRoutes.activity),
                         ),
                         MetricCard(
                           title: 'Water',
-                          value: today?.waterIntakeMl.toString() ?? '0',
+                          value: (today?.waterIntakeMl ?? 0).toString(),
                           unit: 'ml',
                           icon: Icons.water_drop,
                           color: AppColors.water,
-                          progress: (today?.waterIntakeMl ?? 0) / 2000,
+                          progress: (today?.waterIntakeMl ?? 0) / 2500,
                         ),
                         MetricCard(
                           title: 'Sleep',
-                          value: '${(today?.sleepMinutes ?? 0) ~/ 60}h ${(today?.sleepMinutes ?? 0) % 60}m',
+                          value:
+                              '${(today?.sleepMinutes ?? 0) ~/ 60}h ${(today?.sleepMinutes ?? 0) % 60}m',
+                          unit: '',
                           icon: Icons.nights_stay,
                           color: AppColors.sleep,
-                          progress: (today?.sleepMinutes ?? 0) / 480, // 8 hours
+                          progress: (today?.sleepMinutes ?? 0) / 480,
                         ),
                       ],
                     ),
-                    const SizedBox(height: 24),
 
-                    // Quick Actions
-                    Row(
+                    const SizedBox(height: 28),
+
+                    // ── Quick Actions Grid ─────────────────────────────────
+                    Text('Quick Actions',
+                        style: Theme.of(context).textTheme.titleLarge),
+                    const SizedBox(height: 16),
+
+                    GridView.count(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      childAspectRatio: 1.6,
                       children: [
-                        Expanded(
-                          child: ElevatedButton.icon(
-                            icon: const Icon(Icons.add_chart, color: Colors.white),
-                            label: const Text('Log Health', style: TextStyle(color: Colors.white, fontSize: 16)),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primary,
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              elevation: 2,
-                            ),
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (context) => const HealthDataScreen()),
-                              );
-                            },
-                          ),
+                        _QuickAction(
+                          label: 'Log Health',
+                          icon: Icons.add_chart,
+                          color: AppColors.primary,
+                          onTap: () => context.push('/health-data'),
                         ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: ElevatedButton.icon(
-                            icon: const Icon(Icons.bar_chart, color: AppColors.primary),
-                            label: const Text('Analytics', style: TextStyle(color: AppColors.primary, fontSize: 16)),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.surface,
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                                side: const BorderSide(color: AppColors.primary, width: 2),
-                              ),
-                              elevation: 0,
-                            ),
-                            onPressed: () {
-                              context.go(AppRoutes.analytics);
-                            },
-                          ),
+                        _QuickAction(
+                          label: 'Analytics',
+                          icon: Icons.bar_chart,
+                          color: AppColors.steps,
+                          onTap: () => context.go(AppRoutes.analytics),
+                        ),
+                        _QuickAction(
+                          label: 'My Goals',
+                          icon: Icons.flag_outlined,
+                          color: AppColors.success,
+                          onTap: () => context.push(AppRoutes.goals),
+                        ),
+                        _QuickAction(
+                          label: 'Healthcare',
+                          icon: Icons.medical_services_outlined,
+                          color: Colors.teal,
+                          onTap: () =>
+                              context.push(AppRoutes.healthcareInteraction),
+                        ),
+                        _QuickAction(
+                          label: 'Hospital Locator',
+                          icon: Icons.local_hospital_outlined,
+                          color: Colors.deepPurple,
+                          onTap: () => context.push(AppRoutes.hospitalLocator),
+                        ),
+                        _QuickAction(
+                          label: 'Chat Provider',
+                          icon: Icons.chat_bubble_outline,
+                          color: AppColors.info,
+                          onTap: () => context.push(AppRoutes.chatWithProvider),
                         ),
                       ],
-                    ),
-                    const SizedBox(height: 12),
-                    // Goals shortcut
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton.icon(
-                        icon: const Icon(Icons.flag_outlined, color: AppColors.primary),
-                        label: const Text('View Goals', style: TextStyle(color: AppColors.primary, fontSize: 15)),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                          side: const BorderSide(color: AppColors.primary),
-                        ),
-                        onPressed: () => context.push(AppRoutes.goals),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    // Hospital Locator shortcut
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton.icon(
-                        icon: const Icon(Icons.local_hospital_outlined, color: Colors.deepPurple),
-                        label: const Text('Locate Hospital Near Me', style: TextStyle(color: Colors.deepPurple, fontSize: 15)),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                          side: const BorderSide(color: Colors.deepPurple),
-                        ),
-                        onPressed: () => context.push(AppRoutes.hospitalLocator),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    // Chat with Provider shortcut
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton.icon(
-                        icon: const Icon(Icons.chat_bubble_outline, color: Colors.teal),
-                        label: const Text('Chat with Provider', style: TextStyle(color: Colors.teal, fontSize: 15)),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                          side: const BorderSide(color: Colors.teal),
-                        ),
-                        onPressed: () => context.push(AppRoutes.chatWithProvider),
-                      ),
                     ),
                   ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Quick Action Card ──────────────────────────────────────────────────────────
+class _QuickAction extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _QuickAction({
+    required this.label,
+    required this.icon,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: color.withAlpha(20),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: color.withAlpha(25),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: color, size: 22),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
                 ),
               ),
             ),

@@ -123,10 +123,12 @@ class _LoginScreenState extends State<LoginScreen> {
                           controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
                           validator: (val) {
-                            if (val == null || val.isEmpty)
+                            if (val == null || val.isEmpty) {
                               return 'Email is required';
-                            if (!val.contains('@'))
+                            }
+                            if (!val.contains('@')) {
                               return 'Enter a valid email';
+                            }
                             return null;
                           },
                         ),
@@ -148,8 +150,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                 () => _obscurePassword = !_obscurePassword),
                           ),
                           validator: (val) {
-                            if (val == null || val.isEmpty)
+                            if (val == null || val.isEmpty) {
                               return 'Password is required';
+                            }
                             if (val.length < 6) return 'At least 6 characters';
                             return null;
                           },

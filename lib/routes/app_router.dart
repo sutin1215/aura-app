@@ -39,6 +39,9 @@ import '../screens/provider/patient_detail_screen.dart';
 import '../screens/provider/add_report_screen.dart';
 import '../screens/provider/patient_chat_screen.dart';
 
+//new
+import '../screens/health/health_data_screen.dart';
+
 // ── Route paths ───────────────────────────────────────────────────────────────
 class AppRoutes {
   // Auth
@@ -118,8 +121,9 @@ GoRouter createRouter(BuildContext context) {
         }
         // Patient branch
         final isSetupPage = path == AppRoutes.profileSetup;
-        if (!auth.isProfileComplete && !isSetupPage)
+        if (!auth.isProfileComplete && !isSetupPage) {
           return AppRoutes.profileSetup;
+        }
         if (auth.isProfileComplete && (isOnAuthPage || isSetupPage)) {
           return AppRoutes.dashboard;
         }
@@ -163,6 +167,8 @@ GoRouter createRouter(BuildContext context) {
       ),
 
       // ── Patient Overlay Screens ──────────────────────────────────────────
+      GoRoute(
+          path: '/health-data', builder: (_, __) => const HealthDataScreen()),
       GoRoute(
           path: AppRoutes.editProfile,
           builder: (_, __) => const EditProfileScreen()),
