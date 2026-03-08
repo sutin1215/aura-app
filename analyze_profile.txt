@@ -1,6 +1,0 @@
-Analyzing aura_app...                                           
-
-   info - Use 'const' with the constructor to improve performance - lib\screens\profile\profile_screen.dart:55:28 - prefer_const_constructors
-  error - Invalid constant value - lib\screens\profile\profile_screen.dart:221:71 - invalid_constant
-  error - The getter 'border' isn't defined for the type 'AppColors' - lib\screens\profile\profile_screen.dart:221:81 - undefined_getter
-
