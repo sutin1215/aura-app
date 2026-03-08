@@ -145,7 +145,7 @@ class MenstrualScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 12),
-                Expanded(
+                const Expanded(
                   child: _InfoCard(
                     emoji: '🔄',
                     title: 'Avg Cycle',

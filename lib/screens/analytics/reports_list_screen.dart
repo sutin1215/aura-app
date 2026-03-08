@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../providers/metrics_provider.dart';
 import '../../theme/app_theme.dart';
@@ -13,35 +14,49 @@ class ReportsListScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('My Health Reports'),
+        title: const Text('Health Reports'),
         backgroundColor: AppColors.background,
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+          onPressed: () => context.pop(),
+        ),
       ),
       body: Consumer<MetricsProvider>(
-        builder: (context, metricsProvider, child) {
-          final reports = metricsProvider.reports;
-          
+        builder: (context, mp, _) {
+          final reports = mp.reports;
+
           if (reports.isEmpty) {
             return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.description_outlined, size: 80, color: AppColors.textHint.withAlpha(100)),
-                  const SizedBox(height: 16),
-                  Text(
-                    'No Reports Found',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 40),
-                    child: Text(
-                      'When your healthcare provider uploads a PDF report, it will appear here.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: AppColors.textSecondary),
+              child: Padding(
+                padding: const EdgeInsets.all(40),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withAlpha(15),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.description_outlined,
+                          size: 56, color: AppColors.primary),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 24),
+                    const Text('No Reports Yet',
+                        style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary)),
+                    const SizedBox(height: 12),
+                    const Text(
+                      'When your healthcare provider uploads a report, it will appear here.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                          color: AppColors.textSecondary, height: 1.6),
+                    ),
+                  ],
+                ),
               ),
             );
           }
@@ -49,68 +64,87 @@ class ReportsListScreen extends StatelessWidget {
           return ListView.separated(
             padding: const EdgeInsets.all(20),
             itemCount: reports.length,
-            separatorBuilder: (context, index) => const SizedBox(height: 16),
-            itemBuilder: (context, index) {
-              final report = reports[index];
-              return _buildReportCard(context, report);
-            },
+            separatorBuilder: (_, __) => const SizedBox(height: 14),
+            itemBuilder: (_, i) => _ReportCard(report: reports[i]),
           );
         },
-      ),
-      // Provider Upload stub - technically providers would have their own login
-      // but for demonstration we leave a hidden or debug FAB here.
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Provider upload portal not implemented in patient view.')),
-          );
-        },
-        backgroundColor: AppColors.primary,
-        icon: const Icon(Icons.upload_file, color: Colors.white),
-        label: const Text('Provider Upload', style: TextStyle(color: Colors.white)),
       ),
     );
   }
+}
 
-  Widget _buildReportCard(BuildContext context, HealthReport report) {
+class _ReportCard extends StatelessWidget {
+  final HealthReport report;
+  const _ReportCard({required this.report});
+
+  @override
+  Widget build(BuildContext context) {
+    final dateStr = DateFormat('MMM d, yyyy').format(report.dateUploaded);
+
+    // Derive a category colour from the title prefix set by AddReportScreen
+    Color color = AppColors.primary;
+    IconData icon = Icons.description_outlined;
+    if (report.title.contains('[Lab')) {
+      color = AppColors.success;
+      icon = Icons.science_outlined;
+    } else if (report.title.contains('[Prescription')) {
+      color = AppColors.warning;
+      icon = Icons.medication_outlined;
+    } else if (report.title.contains('[Follow')) {
+      color = AppColors.info;
+      icon = Icons.event_repeat_outlined;
+    }
+
     return Container(
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
-          BoxShadow(color: Colors.black.withAlpha(5), blurRadius: 10, offset: const Offset(0, 4)),
+          BoxShadow(
+              color: Colors.black.withAlpha(5),
+              blurRadius: 10,
+              offset: const Offset(0, 4)),
         ],
       ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.all(16),
-        leading: Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Colors.red.withAlpha(20),
-            borderRadius: BorderRadius.circular(12),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: color.withAlpha(20),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(icon, color: color, size: 24),
           ),
-          child: const Icon(Icons.picture_as_pdf, color: Colors.red),
-        ),
-        title: Text(
-          report.title,
-          style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-        ),
-        subtitle: Padding(
-          padding: const EdgeInsets.only(top: 8.0),
-          child: Text(
-            'Uploaded: ${DateFormat('MMM d, yyyy').format(report.dateUploaded)}',
-            style: const TextStyle(color: AppColors.textSecondary),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  report.title,
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                      fontSize: 14),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Uploaded $dateStr',
+                  style: const TextStyle(
+                      color: AppColors.textSecondary, fontSize: 12),
+                ),
+              ],
+            ),
           ),
-        ),
-        trailing: IconButton(
-          icon: const Icon(Icons.download, color: AppColors.primary),
-          onPressed: () {
-            // Future: Implement actual PDF download/view using url_launcher or flutter_pdfview
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Downloading PDF...')),
-            );
-          },
-        ),
+          IconButton(
+            icon: Icon(Icons.download_outlined, color: color),
+            onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Opening report...')),
+            ),
+          ),
+        ],
       ),
     );
   }

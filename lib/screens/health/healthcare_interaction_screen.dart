@@ -40,8 +40,7 @@ class HealthcareInteractionScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final auth = Provider.of<AuthProvider>(context);
-    final profile = auth.userProfile;
+    final auth = Provider.of<AuthProvider>(context, listen: false);
 
     final upcoming =
         _fakeAppointments.where((a) => a['status'] == 'upcoming').toList();

@@ -278,14 +278,14 @@ class AboutScreen extends StatelessWidget {
             const SizedBox(height: 28),
 
             // ── Footer ─────────────────────────────────────────────────
-            Center(
+            const Center(
               child: Column(
                 children: [
                   Text(
                     '© 2025 AURA · Group 3 · F29SO',
                     style: TextStyle(color: AppColors.textHint, fontSize: 12),
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: 4),
                   Text(
                     'Heriot-Watt University · Demo Only',
                     style: TextStyle(color: AppColors.textHint, fontSize: 12),

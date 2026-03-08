@@ -36,7 +36,7 @@ class MakeAppointmentScreen extends StatefulWidget {
 }
 
 class _MakeAppointmentScreenState extends State<MakeAppointmentScreen> {
-  DateTime _focusedDay = DateTime.now();
+  final DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
   String? _selectedSlot;
   int _selectedTypeIndex = 0;

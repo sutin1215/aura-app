@@ -17,7 +17,9 @@ class PatientDetailScreen extends StatelessWidget {
     final now = DateTime.now();
     int age = now.year - birth.year;
     if (now.month < birth.month ||
-        (now.month == birth.month && now.day < birth.day)) age--;
+        (now.month == birth.month && now.day < birth.day)) {
+      age--;
+    }
     return age;
   }
 

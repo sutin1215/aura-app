@@ -15,58 +15,134 @@ class AnalyticsScreen extends StatefulWidget {
 }
 
 class _AnalyticsScreenState extends State<AnalyticsScreen> {
-  // 'week' or 'month'
   String _timeRange = 'week';
-  
-  // The current metric being viewed
   String _selectedMetric = 'steps';
 
   int get _daysCount => _timeRange == 'week' ? 7 : 30;
+
+  // per-metric display config
+  static const _metricConfig = {
+    'steps': {
+      'label': 'Steps',
+      'icon': Icons.directions_walk,
+      'color': AppColors.steps,
+      'unit': 'steps',
+      'goal': 10000.0
+    },
+    'calories': {
+      'label': 'Calories',
+      'icon': Icons.local_fire_department,
+      'color': AppColors.calories,
+      'unit': 'kcal',
+      'goal': 2000.0
+    },
+    'heartRate': {
+      'label': 'Heart Rate',
+      'icon': Icons.favorite,
+      'color': AppColors.heartRate,
+      'unit': 'bpm',
+      'goal': 70.0
+    },
+    'sleep': {
+      'label': 'Sleep',
+      'icon': Icons.nights_stay,
+      'color': AppColors.sleep,
+      'unit': 'min',
+      'goal': 480.0
+    },
+    'water': {
+      'label': 'Water',
+      'icon': Icons.water_drop,
+      'color': AppColors.water,
+      'unit': 'ml',
+      'goal': 2000.0
+    },
+    'weight': {
+      'label': 'Weight',
+      'icon': Icons.monitor_weight,
+      'color': AppColors.weight,
+      'unit': 'kg',
+      'goal': 70.0
+    },
+  };
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Analytics & Reports'),
+        title: const Text('Analytics'),
         backgroundColor: AppColors.background,
         elevation: 0,
+        automaticallyImplyLeading: false,
         actions: [
           TextButton.icon(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ReportsListScreen()),
-              );
-            },
-            icon: const Icon(Icons.picture_as_pdf, color: AppColors.primary),
-            label: const Text('Reports', style: TextStyle(color: AppColors.primary)),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const ReportsListScreen()),
+            ),
+            icon: const Icon(Icons.description_outlined,
+                color: AppColors.primary),
+            label: const Text('Reports',
+                style: TextStyle(color: AppColors.primary)),
           ),
         ],
       ),
       body: Consumer<MetricsProvider>(
-        builder: (context, metricsProvider, child) {
-          final historicalData = _filterData(metricsProvider.historicalMetrics);
-          
+        builder: (context, mp, _) {
+          final data = _filterData(mp.historicalMetrics);
+
           return SingleChildScrollView(
             padding: const EdgeInsets.all(20),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildTimeRangeToggle(),
+                // ── Time toggle ─────────────────────────────────────
+                _TimeToggle(
+                  value: _timeRange,
+                  onChanged: (v) => setState(() => _timeRange = v),
+                ),
+                const SizedBox(height: 20),
+
+                // ── Metric chips ─────────────────────────────────────
+                _MetricChips(
+                  selected: _selectedMetric,
+                  onSelect: (v) => setState(() => _selectedMetric = v),
+                  config: _metricConfig,
+                ),
                 const SizedBox(height: 24),
-                _buildMetricSelector(),
-                const SizedBox(height: 32),
-                
-                if (historicalData.isEmpty)
-                  _buildEmptyState()
-                else
-                  _buildChartCard(historicalData),
-                  
-                const SizedBox(height: 32),
-                
-                if (historicalData.isNotEmpty)
-                  _buildSummaryStats(historicalData),
+
+                // ── Insight banner ────────────────────────────────────
+                if (data.isNotEmpty)
+                  _InsightBanner(
+                    data: data,
+                    metric: _selectedMetric,
+                    config: _metricConfig[_selectedMetric]!,
+                  ),
+
+                const SizedBox(height: 16),
+
+                // ── Chart ─────────────────────────────────────────────
+                data.isEmpty
+                    ? _emptyState()
+                    : _ChartCard(
+                        data: data,
+                        metric: _selectedMetric,
+                        timeRange: _timeRange,
+                        config: _metricConfig[_selectedMetric]!,
+                      ),
+
+                const SizedBox(height: 20),
+
+                // ── Summary Stats ─────────────────────────────────────
+                if (data.isNotEmpty)
+                  _SummaryStats(
+                    data: data,
+                    metric: _selectedMetric,
+                    config: _metricConfig[_selectedMetric]!,
+                  ),
+
+                const SizedBox(height: 40),
               ],
             ),
           );
@@ -75,148 +151,309 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     );
   }
 
-  // Filter data down to the selected time range
-  List<HealthDay> _filterData(List<HealthDay> rawData) {
-    if (rawData.isEmpty) return [];
-    
+  List<HealthDay> _filterData(List<HealthDay> raw) {
+    if (raw.isEmpty) return [];
     final cutoff = DateTime.now().subtract(Duration(days: _daysCount));
-    
-    // Sort chronological (oldest to newest) for the chart
-    final filtered = rawData.where((d) => d.date.isAfter(cutoff)).toList();
+    final filtered = raw.where((d) => d.date.isAfter(cutoff)).toList();
     filtered.sort((a, b) => a.date.compareTo(b.date));
     return filtered;
   }
 
-  Widget _buildTimeRangeToggle() {
+  Widget _emptyState() => Container(
+        padding: const EdgeInsets.all(36),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: Column(
+          children: [
+            Icon(Icons.bar_chart_outlined,
+                size: 64, color: AppColors.textHint.withAlpha(100)),
+            const SizedBox(height: 16),
+            const Text('No data yet',
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                    color: AppColors.textPrimary)),
+            const SizedBox(height: 8),
+            const Text(
+              'Start logging your health metrics\nto see trends here.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: AppColors.textSecondary, height: 1.5),
+            ),
+          ],
+        ),
+      );
+}
+
+// ── Time Toggle ───────────────────────────────────────────────────────────────
+class _TimeToggle extends StatelessWidget {
+  final String value;
+  final ValueChanged<String> onChanged;
+  const _TimeToggle({required this.value, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
       ),
       child: Row(
-        children: [
-          Expanded(
-            child: _buildToggleButton('Week', 'week'),
-          ),
-          Expanded(
-            child: _buildToggleButton('Month', 'month'),
-          ),
-        ],
+        children: ['week', 'month'].map((opt) {
+          final active = value == opt;
+          return Expanded(
+            child: GestureDetector(
+              onTap: () => onChanged(opt),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: active ? AppColors.primary : Colors.transparent,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  opt == 'week' ? 'This Week' : 'This Month',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: active ? Colors.white : AppColors.textSecondary,
+                  ),
+                ),
+              ),
+            ),
+          );
+        }).toList(),
       ),
     );
   }
+}
 
-  Widget _buildToggleButton(String label, String value) {
-    final isSelected = _timeRange == value;
-    return GestureDetector(
-      onTap: () => setState(() => _timeRange = value),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : Colors.transparent,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Text(
-          label,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: isSelected ? Colors.white : AppColors.textSecondary,
-          ),
-        ),
-      ),
-    );
-  }
+// ── Metric Chips ──────────────────────────────────────────────────────────────
+class _MetricChips extends StatelessWidget {
+  final String selected;
+  final ValueChanged<String> onSelect;
+  final Map<String, dynamic> config;
+  const _MetricChips(
+      {required this.selected, required this.onSelect, required this.config});
 
-  Widget _buildMetricSelector() {
+  @override
+  Widget build(BuildContext context) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
-        children: [
-          _metricChip('Steps', 'steps', Icons.directions_walk, AppColors.steps),
-          _metricChip('Calories', 'calories', Icons.local_fire_department, AppColors.calories),
-          _metricChip('Heart Rate', 'heartRate', Icons.favorite, Colors.redAccent),
-          _metricChip('Sleep', 'sleep', Icons.nights_stay, AppColors.sleep),
-          _metricChip('Water', 'water', Icons.water_drop, AppColors.water),
-          _metricChip('Weight', 'weight', Icons.monitor_weight, Colors.teal),
-        ],
+        children: config.entries.map((e) {
+          final key = e.key;
+          final cfg = e.value as Map<String, dynamic>;
+          final active = selected == key;
+          final color = cfg['color'] as Color;
+          return Padding(
+            padding: const EdgeInsets.only(right: 10),
+            child: GestureDetector(
+              onTap: () => onSelect(key),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                decoration: BoxDecoration(
+                  color: active ? color : AppColors.surface,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                      color: active ? color : AppColors.textHint.withAlpha(40)),
+                  boxShadow: active
+                      ? [
+                          BoxShadow(
+                              color: color.withAlpha(60),
+                              blurRadius: 8,
+                              offset: const Offset(0, 3))
+                        ]
+                      : [],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(cfg['icon'] as IconData,
+                        size: 16, color: active ? Colors.white : color),
+                    const SizedBox(width: 6),
+                    Text(
+                      cfg['label'] as String,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                        color: active ? Colors.white : AppColors.textPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }).toList(),
       ),
     );
   }
+}
 
-  Widget _metricChip(String label, String value, IconData icon, Color color) {
-    final isSelected = _selectedMetric == value;
-    return Padding(
-      padding: const EdgeInsets.only(right: 12),
-      child: ChoiceChip(
-        label: Row(
-          children: [
-            Icon(icon, size: 16, color: isSelected ? Colors.white : color),
-            const SizedBox(width: 8),
-            Text(label),
-          ],
-        ),
-        selected: isSelected,
-        onSelected: (selected) {
-          if (selected) setState(() => _selectedMetric = value);
-        },
-        selectedColor: color,
-        labelStyle: TextStyle(
-          color: isSelected ? Colors.white : AppColors.textPrimary,
-          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-        ),
-        backgroundColor: AppColors.surface,
-        side: BorderSide(
-          color: isSelected ? Colors.transparent : AppColors.textHint.withAlpha(30),
-        ),
-      ),
-    );
+// ── Insight Banner ────────────────────────────────────────────────────────────
+class _InsightBanner extends StatelessWidget {
+  final List<HealthDay> data;
+  final String metric;
+  final Map<String, dynamic> config;
+  const _InsightBanner(
+      {required this.data, required this.metric, required this.config});
+
+  num _val(HealthDay d) {
+    switch (metric) {
+      case 'steps':
+        return d.steps;
+      case 'calories':
+        return d.caloriesBurned;
+      case 'heartRate':
+        return d.heartRate;
+      case 'sleep':
+        return d.sleepMinutes;
+      case 'water':
+        return d.waterIntakeMl;
+      case 'weight':
+        return d.weight;
+      default:
+        return 0;
+    }
   }
 
-  Widget _buildEmptyState() {
+  @override
+  Widget build(BuildContext context) {
+    final values = data.map(_val).where((v) => v > 0).toList();
+    if (values.isEmpty) return const SizedBox.shrink();
+
+    final avg = values.reduce((a, b) => a + b) / values.length;
+    final goal = (config['goal'] as double?) ?? 1;
+    final pct = ((avg / goal) * 100).clamp(0, 200);
+    final color = config['color'] as Color;
+    final unit = config['unit'] as String;
+
+    String insight;
+    if (pct >= 100) {
+      insight = "You're hitting your ${config['label']} goal on average! 🎉";
+    } else if (pct >= 70) {
+      insight =
+          "Almost there! Your ${config['label']} average is ${pct.toStringAsFixed(0)}% of goal.";
+    } else {
+      insight =
+          "Room to grow — your ${config['label']} avg is ${_fmt(avg)} $unit. Keep pushing!";
+    }
+
     return Container(
-      padding: const EdgeInsets.all(32),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(24),
+        color: color.withAlpha(15),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withAlpha(60)),
       ),
-      child: Column(
+      child: Row(
         children: [
-          Icon(Icons.bar_chart, size: 64, color: AppColors.textHint.withAlpha(100)),
-          const SizedBox(height: 16),
-          Text(
-            'No data yet',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Start logging your daily metrics to see your progress trends here.',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: AppColors.textSecondary),
+          Icon(Icons.lightbulb_outline, color: color, size: 22),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(insight,
+                style: TextStyle(
+                    color: color, fontWeight: FontWeight.w600, fontSize: 13)),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildChartCard(List<HealthDay> data) {
-    Color chartColor = AppColors.primary;
-    if (_selectedMetric == 'steps') chartColor = AppColors.steps;
-    if (_selectedMetric == 'calories') chartColor = AppColors.calories;
-    if (_selectedMetric == 'heartRate') chartColor = Colors.redAccent;
-    if (_selectedMetric == 'sleep') chartColor = AppColors.sleep;
-    if (_selectedMetric == 'water') chartColor = AppColors.water;
-    if (_selectedMetric == 'weight') chartColor = Colors.teal;
+  String _fmt(num v) {
+    if (metric == 'sleep') {
+      return '${(v ~/ 60)}h ${(v % 60).toInt()}m';
+    }
+    if (v >= 1000 && metric == 'steps') {
+      return '${(v / 1000).toStringAsFixed(1)}k';
+    }
+    return v is double ? v.toStringAsFixed(1) : v.toString();
+  }
+}
+
+// ── Chart Card ────────────────────────────────────────────────────────────────
+class _ChartCard extends StatelessWidget {
+  final List<HealthDay> data;
+  final String metric;
+  final String timeRange;
+  final Map<String, dynamic> config;
+
+  const _ChartCard({
+    required this.data,
+    required this.metric,
+    required this.timeRange,
+    required this.config,
+  });
+
+  num _val(HealthDay d) {
+    switch (metric) {
+      case 'steps':
+        return d.steps;
+      case 'calories':
+        return d.caloriesBurned;
+      case 'heartRate':
+        return d.heartRate;
+      case 'sleep':
+        return d.sleepMinutes;
+      case 'water':
+        return d.waterIntakeMl;
+      case 'weight':
+        return d.weight;
+      default:
+        return 0;
+    }
+  }
+
+  List<FlSpot> _spots() => List.generate(
+      data.length, (i) => FlSpot(i.toDouble(), _val(data[i]).toDouble()));
+
+  double _interval() {
+    switch (metric) {
+      case 'steps':
+        return 2000;
+      case 'calories':
+        return 500;
+      case 'heartRate':
+        return 20;
+      case 'sleep':
+        return 120;
+      case 'water':
+        return 500;
+      case 'weight':
+        return 10;
+      default:
+        return 10;
+    }
+  }
+
+  String _axisLabel(double v) {
+    if (metric == 'steps') return '${(v / 1000).toStringAsFixed(0)}k';
+    if (metric == 'sleep') return '${(v / 60).toStringAsFixed(0)}h';
+    return v.toStringAsFixed(0);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final color = config['color'] as Color;
+    final goal = (config['goal'] as double?) ?? 0;
+    final showDots = timeRange == 'week';
 
     return Container(
-      height: 300,
-      padding: const EdgeInsets.only(right: 20, left: 10, top: 24, bottom: 10),
+      height: 280,
+      padding: const EdgeInsets.fromLTRB(8, 20, 20, 10),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
-          BoxShadow(color: Colors.black.withAlpha(5), blurRadius: 10, offset: const Offset(0, 4)),
+          BoxShadow(
+              color: Colors.black.withAlpha(5),
+              blurRadius: 10,
+              offset: const Offset(0, 4)),
         ],
       ),
       child: LineChart(
@@ -224,69 +461,90 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           gridData: FlGridData(
             show: true,
             drawVerticalLine: false,
-            horizontalInterval: _getInterval(),
-            getDrawingHorizontalLine: (value) {
-              return FlLine(
-                color: AppColors.textHint.withAlpha(20),
-                strokeWidth: 1,
-              );
-            },
+            horizontalInterval: _interval(),
+            getDrawingHorizontalLine: (_) =>
+                FlLine(color: AppColors.textHint.withAlpha(20), strokeWidth: 1),
           ),
           titlesData: FlTitlesData(
-            show: true,
-            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            rightTitles:
+                const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            topTitles:
+                const AxisTitles(sideTitles: SideTitles(showTitles: false)),
             bottomTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
-                reservedSize: 30,
-                interval: _timeRange == 'week' ? 1 : 7,
-                getTitlesWidget: (value, meta) {
-                  // value is the index in the data list
+                reservedSize: 28,
+                interval: timeRange == 'week' ? 1 : 7,
+                getTitlesWidget: (value, _) {
                   final index = value.toInt();
-                  if (index >= 0 && index < data.length) {
-                    final date = data[index].date;
-                    // For week view show day name (Mon), for month show date (15/10)
-                    final format = _timeRange == 'week' ? DateFormat('E') : DateFormat('d/M');
-                    return Padding(
-                      padding: const EdgeInsets.only(top: 8.0),
-                      child: Text(
-                        format.format(date),
-                        style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
-                      ),
-                    );
-                  }
-                  return const Text('');
+                  if (index < 0 || index >= data.length) return const Text('');
+                  final date = data[index].date;
+                  final label = timeRange == 'week'
+                      ? DateFormat('E').format(date)
+                      : DateFormat('d').format(date);
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 6),
+                    child: Text(label,
+                        style: const TextStyle(
+                            color: AppColors.textSecondary, fontSize: 11)),
+                  );
                 },
               ),
             ),
             leftTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
-                reservedSize: 45,
-                getTitlesWidget: (value, meta) {
-                  return Text(
-                    _formatAxisValue(value),
-                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
-                  );
-                },
+                reservedSize: 44,
+                getTitlesWidget: (v, _) => Text(_axisLabel(v),
+                    style: const TextStyle(
+                        color: AppColors.textSecondary, fontSize: 11)),
               ),
             ),
           ),
           borderData: FlBorderData(show: false),
+          extraLinesData: goal > 0
+              ? ExtraLinesData(horizontalLines: [
+                  HorizontalLine(
+                    y: goal,
+                    color: color.withAlpha(80),
+                    strokeWidth: 1.5,
+                    dashArray: [6, 4],
+                    label: HorizontalLineLabel(
+                      show: true,
+                      alignment: Alignment.topRight,
+                      padding: const EdgeInsets.only(right: 4, bottom: 2),
+                      style: TextStyle(
+                          color: color,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold),
+                      labelResolver: (_) => 'Goal',
+                    ),
+                  ),
+                ])
+              : null,
           lineBarsData: [
             LineChartBarData(
-              spots: _getSpots(data),
+              spots: _spots(),
               isCurved: true,
-              color: chartColor,
-              barWidth: 4,
+              color: color,
+              barWidth: 3,
               isStrokeCapRound: true,
               dotData: FlDotData(
-                show: _timeRange == 'week', // Only show dots on week view
+                show: showDots,
+                getDotPainter: (_, __, ___, ____) => FlDotCirclePainter(
+                  radius: 4,
+                  color: color,
+                  strokeWidth: 2,
+                  strokeColor: Colors.white,
+                ),
               ),
               belowBarData: BarAreaData(
                 show: true,
-                color: chartColor.withAlpha(30),
+                gradient: LinearGradient(
+                  colors: [color.withAlpha(60), color.withAlpha(0)],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
               ),
             ),
           ],
@@ -294,127 +552,100 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       ),
     );
   }
+}
 
-  Widget _buildSummaryStats(List<HealthDay> data) {
-    double total = 0;
-    int countWithData = 0;
-    
-    for (var day in data) {
-      final val = _getValueForMetric(day);
-      if (val > 0) {
-        total += val;
-        countWithData++;
-      }
+// ── Summary Stats ─────────────────────────────────────────────────────────────
+class _SummaryStats extends StatelessWidget {
+  final List<HealthDay> data;
+  final String metric;
+  final Map<String, dynamic> config;
+  const _SummaryStats(
+      {required this.data, required this.metric, required this.config});
+
+  num _val(HealthDay d) {
+    switch (metric) {
+      case 'steps':
+        return d.steps;
+      case 'calories':
+        return d.caloriesBurned;
+      case 'heartRate':
+        return d.heartRate;
+      case 'sleep':
+        return d.sleepMinutes;
+      case 'water':
+        return d.waterIntakeMl;
+      case 'weight':
+        return d.weight;
+      default:
+        return 0;
     }
-    
-    final average = countWithData > 0 ? total / countWithData : 0.0;
-    final unit = _getUnit();
+  }
 
-    return Row(
+  String _fmt(double v) {
+    if (metric == 'sleep') return '${(v ~/ 60)}h ${(v % 60).toInt()}m';
+    if (metric == 'weight') return '${v.toStringAsFixed(1)} kg';
+    if (metric == 'water') return '${(v / 1000).toStringAsFixed(1)} L';
+    if (v >= 1000 && metric == 'steps') {
+      return '${(v / 1000).toStringAsFixed(1)}k';
+    }
+    return '${v.toStringAsFixed(0)} ${config['unit']}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final values = data.map(_val).where((v) => v > 0).toList();
+    if (values.isEmpty) return const SizedBox.shrink();
+
+    final total = values.fold<num>(0, (a, b) => a + b);
+    final avg = total / values.length;
+    final peak = values.reduce((a, b) => a > b ? a : b);
+    final low = values.reduce((a, b) => a < b ? a : b);
+    final color = config['color'] as Color;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: _statCard('Average', '${_formatValue(average)} $unit'),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: _statCard('Total', '${_formatValue(total)} $unit'),
+        const Text('Summary',
+            style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                color: AppColors.textPrimary)),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            _statCard('Average', _fmt(avg.toDouble()), color),
+            const SizedBox(width: 12),
+            _statCard('Peak', _fmt(peak.toDouble()), AppColors.success),
+            const SizedBox(width: 12),
+            _statCard('Lowest', _fmt(low.toDouble()), AppColors.textSecondary),
+          ],
         ),
       ],
     );
   }
-  
-  Widget _statCard(String title, String value) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.textHint.withAlpha(20)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title, style: const TextStyle(color: AppColors.textSecondary)),
-          const SizedBox(height: 8),
-          Text(
-            value, 
-            style: const TextStyle(
-              fontSize: 20, 
-              fontWeight: FontWeight.bold, 
-              color: AppColors.textPrimary
-            )
+
+  Widget _statCard(String label, String value, Color color) => Expanded(
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: color.withAlpha(40)),
           ),
-        ],
-      ),
-    );
-  }
-
-  // --- Helpers --- //
-
-  double _getInterval() {
-    switch (_selectedMetric) {
-      case 'steps': return 2000;
-      case 'calories': return 500;
-      case 'heartRate': return 20;
-      case 'sleep': return 120; // 2 hours in minutes
-      case 'water': return 500;
-      case 'weight': return 10;
-      default: return 10;
-    }
-  }
-
-  String _formatAxisValue(double value) {
-    if (_selectedMetric == 'steps') return '${(value / 1000).toStringAsFixed(1)}k';
-    if (_selectedMetric == 'sleep') return '${(value / 60).toStringAsFixed(0)}h';
-    return value.toStringAsFixed(0);
-  }
-
-  String _formatValue(double value) {
-    if (_selectedMetric == 'sleep') {
-      final hours = value ~/ 60;
-      final mins = (value % 60).toInt();
-      return '${hours}h ${mins}m';
-    }
-    if (_selectedMetric == 'weight' || _selectedMetric == 'water') {
-      // water is in ml, converting to L for display might be nice, but matching axis is better
-      if (_selectedMetric == 'water') return (value / 1000).toStringAsFixed(1); 
-      return value.toStringAsFixed(1);
-    }
-    return value.toStringAsFixed(0);
-  }
-
-  String _getUnit() {
-    switch (_selectedMetric) {
-      case 'steps': return 'steps';
-      case 'calories': return 'kcal';
-      case 'heartRate': return 'bpm';
-      case 'sleep': return '';
-      case 'water': return 'L';
-      case 'weight': return 'kg';
-      default: return '';
-    }
-  }
-
-  List<FlSpot> _getSpots(List<HealthDay> data) {
-    final spots = <FlSpot>[];
-    for (int i = 0; i < data.length; i++) {
-      final val = _getValueForMetric(data[i]);
-      // For fl_chart, we need valid numbers. If 0 and we want to skip it, we can either plot 0 or exclude it. 
-      // Excluding breaks the x-axis alignment unless x is a raw timestamp.
-      spots.add(FlSpot(i.toDouble(), val.toDouble()));
-    }
-    return spots;
-  }
-
-  num _getValueForMetric(HealthDay day) {
-    switch (_selectedMetric) {
-      case 'steps': return day.steps;
-      case 'calories': return day.caloriesBurned;
-      case 'heartRate': return day.heartRate;
-      case 'sleep': return day.sleepMinutes;
-      case 'water': return day.waterIntakeMl;
-      case 'weight': return day.weight;
-      default: return 0;
-    }
-  }
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label,
+                  style: const TextStyle(
+                      color: AppColors.textHint,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500)),
+              const SizedBox(height: 4),
+              Text(value,
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold, fontSize: 14, color: color)),
+            ],
+          ),
+        ),
+      );
 }
