@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../providers/auth_provider.dart';
 import '../../routes/app_router.dart';
 import '../../theme/app_theme.dart';
+import '../../data/partner_doctors.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -43,6 +44,12 @@ class ProfileScreen extends StatelessWidget {
     final bmiInfo = _bmiInfo(bmi);
     final age = profile != null ? _age(profile.dateOfBirth) : 0;
     final isFemale = (profile?.gender ?? '').toLowerCase() == 'female';
+
+    final providerId = profile?.assignedProviderId;
+    final isConnected = providerId != null && providerId.isNotEmpty;
+    final connectedDoctor = isConnected
+        ? kPartnerDoctors.where((d) => d.hiddenUid == providerId).firstOrNull
+        : null;
 
     // ── Static achievement badges for demo ───────────────────────────────────
     const badges = [
@@ -245,73 +252,121 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: 24),
 
             // ── SECTION 3 — Assigned Provider ────────────────────────────────
+            // ── SECTION 3 — Assigned Provider ────────────────────────────────
             _sectionLabel('Your Healthcare Provider'),
             const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [AppColors.gradientStart, AppColors.gradientEnd],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+            if (isConnected)
+              Container(
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [AppColors.gradientStart, AppColors.gradientEnd],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                        color: AppColors.primary.withAlpha(50),
+                        blurRadius: 14,
+                        offset: const Offset(0, 6)),
+                  ],
                 ),
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                      color: AppColors.primary.withAlpha(50),
-                      blurRadius: 14,
-                      offset: const Offset(0, 6)),
-                ],
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withAlpha(40),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Text(connectedDoctor?.emoji ?? '👨‍⚕️',
+                          style: const TextStyle(fontSize: 26)),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(connectedDoctor?.name ?? 'Your Doctor',
+                              style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16)),
+                          const SizedBox(height: 2),
+                          Text(
+                              '${connectedDoctor?.specialty ?? 'Healthcare Provider'} · Active',
+                              style: TextStyle(
+                                  color: Colors.white.withAlpha(200),
+                                  fontSize: 12)),
+                        ],
+                      ),
+                    ),
+                    ElevatedButton.icon(
+                      onPressed: () => context.push(AppRoutes.chatWithProvider),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: AppColors.primary,
+                        minimumSize: Size.zero,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 8),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                        elevation: 0,
+                      ),
+                      icon: const Icon(Icons.chat_bubble_outline, size: 15),
+                      label: const Text('Message',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 13)),
+                    ),
+                  ],
+                ),
+              )
+            else
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppColors.primary.withAlpha(30)),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withAlpha(20),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.person_search_outlined,
+                          color: AppColors.primary, size: 24),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('No Provider Linked',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.textPrimary)),
+                          const SizedBox(height: 2),
+                          const Text(
+                              'Connect with a doctor to unlock features.',
+                              style: TextStyle(
+                                  color: AppColors.textSecondary,
+                                  fontSize: 12)),
+                        ],
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () =>
+                          context.push(AppRoutes.healthcareInteraction),
+                      child: const Text('Connect'),
+                    ),
+                  ],
+                ),
               ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withAlpha(40),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.medical_services_outlined,
-                        color: Colors.white, size: 26),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('Dr. Kang',
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16)),
-                        const SizedBox(height: 2),
-                        Text('General Practice · Active',
-                            style: TextStyle(
-                                color: Colors.white.withAlpha(200),
-                                fontSize: 12)),
-                      ],
-                    ),
-                  ),
-                  ElevatedButton.icon(
-                    onPressed: () => context.push(AppRoutes.chatWithProvider),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: AppColors.primary,
-                      minimumSize: Size.zero,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 8),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                      elevation: 0,
-                    ),
-                    icon: const Icon(Icons.chat_bubble_outline, size: 15),
-                    label: const Text('Message',
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 13)),
-                  ),
-                ],
-              ),
-            ),
 
             const SizedBox(height: 24),
 

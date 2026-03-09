@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../providers/auth_provider.dart';
 import '../../routes/app_router.dart';
@@ -32,12 +33,55 @@ final _fakeAppointments = [
   },
 ];
 
-class HealthcareInteractionScreen extends StatelessWidget {
+class HealthcareInteractionScreen extends StatefulWidget {
   const HealthcareInteractionScreen({super.key});
+
+  @override
+  State<HealthcareInteractionScreen> createState() =>
+      _HealthcareInteractionScreenState();
+}
+
+class _HealthcareInteractionScreenState
+    extends State<HealthcareInteractionScreen> {
+  bool _isDisconnecting = false;
+
+  Future<void> _disconnect(String patientUid) async {
+    setState(() => _isDisconnecting = true);
+    try {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(patientUid)
+          .update({
+        'assignedProviderId': FieldValue.delete(),
+      });
+      if (mounted) {
+        final auth = Provider.of<AuthProvider>(context, listen: false);
+        await auth.refreshProfile();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('✅ Disconnected successfully.'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error disconnecting: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isDisconnecting = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthProvider>(context);
+    final patientUid = auth.user?.uid ?? '';
     final providerId = auth.userProfile?.assignedProviderId;
     final isConnected = providerId != null && providerId.isNotEmpty;
 
@@ -68,7 +112,26 @@ class HealthcareInteractionScreen extends StatelessWidget {
             if (isConnected) ...[
               _ConnectedDoctorCard(
                 doctor: connectedDoctor,
-                providerId: providerId,
+                providerId: providerId ?? '',
+              ),
+              const SizedBox(height: 8),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton.icon(
+                  onPressed:
+                      _isDisconnecting ? null : () => _disconnect(patientUid),
+                  icon: _isDisconnecting
+                      ? const SizedBox(
+                          width: 14,
+                          height: 14,
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2, color: AppColors.error))
+                      : const Icon(Icons.link_off,
+                          color: AppColors.error, size: 18),
+                  label: const Text('Disconnect Provider',
+                      style: TextStyle(
+                          color: AppColors.error, fontWeight: FontWeight.bold)),
+                ),
               ),
               const SizedBox(height: 16),
               Row(
