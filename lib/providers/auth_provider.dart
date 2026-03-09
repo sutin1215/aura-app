@@ -103,6 +103,13 @@ class AuthProvider extends ChangeNotifier {
     await updateUserProfile(profile);
   }
 
+  /// Re-fetches the user profile from Firestore and notifies listeners.
+  /// Called after assigning a provider so the UI updates immediately.
+  Future<void> refreshProfile() async {
+    if (_user == null) return;
+    await _checkProfileStatus(_user!.uid);
+  }
+
   Future<void> signIn(String email, String password) async {
     await _auth.signInWithEmailAndPassword(email: email, password: password);
   }

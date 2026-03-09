@@ -486,4 +486,15 @@ class FirestoreService {
       'assignedProviderId': providerUid,
     });
   }
+
+  /// Assigns a provider to a patient directly — used by the partner
+  /// specialist flow where the providerUid is a trusted hardcoded value.
+  Future<void> assignProvider({
+    required String patientUid,
+    required String providerUid,
+  }) async {
+    await _db.collection('users').doc(patientUid).update({
+      'assignedProviderId': providerUid,
+    });
+  }
 }

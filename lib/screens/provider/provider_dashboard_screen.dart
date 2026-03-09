@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../providers/auth_provider.dart';
 import '../../services/firestore_service.dart';
 import '../../theme/app_theme.dart';
 import '../../routes/app_router.dart';
 
-// Distinct avatar colors cycling per patient card
 const _avatarColors = [
   Color(0xFF7B61FF),
   Color(0xFF4CAF50),
@@ -34,15 +34,12 @@ class ProviderDashboardScreen extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            // ── Header ───────────────────────────────────────────────────
             Container(
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
               child: Column(
                 children: [
-                  // Top row
                   Row(
                     children: [
-                      // Avatar
                       Container(
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
@@ -96,7 +93,6 @@ class ProviderDashboardScreen extends StatelessWidget {
                           ],
                         ),
                       ),
-                      // Logout
                       IconButton(
                         icon: const Icon(Icons.logout,
                             color: AppColors.error, size: 22),
@@ -105,10 +101,9 @@ class ProviderDashboardScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 20),
 
-                  // Gradient info banner
+                  // This is the updated Gradient Banner with QR button
                   Container(
                     padding: const EdgeInsets.all(18),
                     decoration: BoxDecoration(
@@ -144,7 +139,7 @@ class ProviderDashboardScreen extends StatelessWidget {
                                       fontWeight: FontWeight.bold,
                                       fontSize: 16)),
                               Text(
-                                'Share your ID with patients to link them',
+                                'Share your QR code with patients to connect',
                                 style: TextStyle(
                                     color: Colors.white.withAlpha(200),
                                     fontSize: 12),
@@ -152,39 +147,26 @@ class ProviderDashboardScreen extends StatelessWidget {
                             ],
                           ),
                         ),
-                        // UID copy chip
                         GestureDetector(
-                          onTap: () {
-                            Clipboard.setData(ClipboardData(text: userId));
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Provider ID copied!'),
-                                backgroundColor: AppColors.success,
-                              ),
-                            );
-                          },
+                          onTap: () => _showQrSheet(context, profile, userId),
                           child: Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 6),
+                                horizontal: 12, vertical: 8),
                             decoration: BoxDecoration(
                               color: Colors.white.withAlpha(40),
-                              borderRadius: BorderRadius.circular(10),
+                              borderRadius: BorderRadius.circular(12),
                             ),
-                            child: Row(
+                            child: const Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(Icons.copy,
-                                    color: Colors.white, size: 14),
-                                const SizedBox(width: 4),
-                                Text(
-                                  userId.isNotEmpty
-                                      ? '${userId.substring(0, 8)}...'
-                                      : '—',
-                                  style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 11,
-                                      fontFamily: 'monospace'),
-                                ),
+                                Icon(Icons.qr_code_2,
+                                    color: Colors.white, size: 20),
+                                SizedBox(width: 6),
+                                Text('My QR',
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 13)),
                               ],
                             ),
                           ),
@@ -194,8 +176,6 @@ class ProviderDashboardScreen extends StatelessWidget {
                   ),
 
                   const SizedBox(height: 20),
-
-                  // Section label
                   Row(
                     children: [
                       const Text(
@@ -234,8 +214,6 @@ class ProviderDashboardScreen extends StatelessWidget {
                 ],
               ),
             ),
-
-            // ── Patient List ──────────────────────────────────────────────
             Expanded(
               child: StreamBuilder<List<String>>(
                 stream: db.streamPatientIds(userId),
@@ -304,49 +282,10 @@ class ProviderDashboardScreen extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           const Text(
-            'Share your Provider ID with patients.\nThey enter it in their Settings → Link Provider.',
+            'Tap "My QR" to share your Code with patients.\nThey enter it in their app to link up with you.',
             textAlign: TextAlign.center,
             style: TextStyle(
                 color: AppColors.textSecondary, height: 1.6, fontSize: 14),
-          ),
-          const SizedBox(height: 24),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.border),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.badge_outlined,
-                    color: AppColors.primary, size: 18),
-                const SizedBox(width: 8),
-                Text(
-                  userId.isNotEmpty
-                      ? 'ID: ${userId.substring(0, 16)}...'
-                      : 'Loading...',
-                  style: const TextStyle(
-                      fontFamily: 'monospace',
-                      color: AppColors.textPrimary,
-                      fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(width: 10),
-                GestureDetector(
-                  onTap: () {
-                    Clipboard.setData(ClipboardData(text: userId));
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                          content: Text('Copied!'),
-                          backgroundColor: AppColors.success),
-                    );
-                  },
-                  child: const Icon(Icons.copy,
-                      size: 16, color: AppColors.primary),
-                ),
-              ],
-            ),
           ),
         ],
       ),
@@ -378,9 +317,133 @@ class ProviderDashboardScreen extends StatelessWidget {
       ),
     );
   }
+
+  // Adding the requested method to this stateless widget class
+  void _showQrSheet(BuildContext context, profile, String userId) {
+    String providerCode;
+    if (profile?.username != null && profile.username.isNotEmpty) {
+      final parts = (profile.username as String).trim().split(' ');
+      final lastName = parts.length > 1 ? parts.last : parts.first;
+      providerCode =
+          '${lastName.toUpperCase().replaceAll(RegExp(r'[^A-Z]'), '')}-2024';
+    } else {
+      providerCode = userId.substring(0, 8).toUpperCase();
+    }
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surface,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.fromLTRB(24, 20, 24, 48),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.textHint.withAlpha(60),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 24),
+            const Text('Your Provider QR Code',
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                    color: AppColors.textPrimary)),
+            const SizedBox(height: 8),
+            const Text(
+              'Show this to your patients so they can connect\nwith you on AURA.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                  color: AppColors.textSecondary, fontSize: 13, height: 1.5),
+            ),
+            const SizedBox(height: 28),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                      color: AppColors.primary.withAlpha(30),
+                      blurRadius: 20,
+                      offset: const Offset(0, 8)),
+                ],
+              ),
+              child: QrImageView(
+                data: providerCode,
+                version: QrVersions.auto,
+                size: 200,
+                backgroundColor: Colors.white,
+                eyeStyle: const QrEyeStyle(
+                  eyeShape: QrEyeShape.square,
+                  color: AppColors.primary,
+                ),
+                dataModuleStyle: const QrDataModuleStyle(
+                  dataModuleShape: QrDataModuleShape.square,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withAlpha(15),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: AppColors.primary.withAlpha(60)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.vpn_key_outlined,
+                      color: AppColors.primary, size: 18),
+                  const SizedBox(width: 10),
+                  Text(
+                    providerCode,
+                    style: const TextStyle(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                      letterSpacing: 2,
+                      fontFamily: 'monospace',
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  GestureDetector(
+                    onTap: () {
+                      Clipboard.setData(ClipboardData(text: providerCode));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text('Provider code copied!'),
+                            backgroundColor: AppColors.success),
+                      );
+                    },
+                    child: const Icon(Icons.copy,
+                        size: 18, color: AppColors.primary),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'Patients can also type this code manually\nin the AURA patient app.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                  color: AppColors.textHint, fontSize: 12, height: 1.5),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
-// ── Patient Card ───────────────────────────────────────────────────────────────
 class _PatientCard extends StatelessWidget {
   final String patientUid;
   final Color avatarColor;
@@ -421,7 +484,6 @@ class _PatientCard extends StatelessWidget {
             ),
             child: Row(
               children: [
-                // Colored avatar
                 Container(
                   width: 54,
                   height: 54,
@@ -446,8 +508,6 @@ class _PatientCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 14),
-
-                // Info
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -487,8 +547,6 @@ class _PatientCard extends StatelessWidget {
                     ],
                   ),
                 ),
-
-                // Actions
                 Column(
                   children: [
                     _iconBtn(
