@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:go_router/go_router.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../../routes/app_router.dart';
+import '../../theme/app_theme.dart';
 
 class MainShell extends StatefulWidget {
   final Widget child;
@@ -24,7 +27,36 @@ class _MainShellState extends State<MainShell> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: widget.child, // Use widget.child for StatefulWidget
+      body: widget.child,
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => context.push(AppRoutes.aiChat),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        child: Container(
+          width: 56,
+          height: 56,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: const LinearGradient(
+              colors: [Colors.purpleAccent, AppColors.primary],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.purpleAccent.withOpacity(0.4),
+                blurRadius: 12,
+                spreadRadius: 2,
+                offset: const Offset(0, 4),
+              )
+            ],
+          ),
+          child: const Icon(Icons.auto_awesome, color: Colors.white, size: 26)
+              .animate(onPlay: (controller) => controller.repeat(reverse: true))
+              .scale(begin: const Offset(1, 1), end: const Offset(1.1, 1.1), duration: 1500.ms),
+        ).animate(onPlay: (controller) => controller.repeat(reverse: true))
+         .shimmer(duration: 2000.ms, delay: 1000.ms),
+      ),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType
             .fixed, // Ensure it doesn't try to shift with 6 items

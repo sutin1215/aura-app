@@ -6,6 +6,7 @@ import '../../providers/auth_provider.dart';
 import '../../routes/app_router.dart';
 import '../../theme/app_theme.dart';
 import '../../data/partner_doctors.dart';
+import '../../utils/demo_data_generator.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -451,6 +452,32 @@ class ProfileScreen extends StatelessWidget {
               ),
               child: Column(
                 children: [
+                  // 🌟 MAGIC DEMO BUTTON STARTS HERE 🌟
+                  _settingsTile(
+                    context,
+                    icon: Icons.auto_awesome,
+                    color: Colors.orange,
+                    title: 'Generate Demo Data',
+                    subtitle: 'Pre-fill charts, meals, and activities',
+                    onTap: () async {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text('Generating golden path data... ✨')),
+                      );
+                      await DemoDataGenerator.populateGoldenPath(
+                          auth.user!.uid);
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text(
+                                  '✅ Data populated! Navigate between tabs to refresh.'),
+                              backgroundColor: AppColors.success),
+                        );
+                      }
+                    },
+                  ),
+                  _divider(),
+                  // 🌟 MAGIC DEMO BUTTON ENDS HERE 🌟
                   _settingsTile(
                     context,
                     icon: Icons.notifications_outlined,

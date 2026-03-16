@@ -410,3 +410,13 @@ Phase 20 🔲  Data Synchronization
 
 Phase 21 🔲  Web responsive polish + final testing //fix the layout for web
 ```
+
+
+-biomarker button with fake data
+-check fr again from the report
+-change password(2 step verification)
+-share health data to social media
+-doctor also can check appoinment dates
+-patient change to user
+-make the medical history more immersive(search existing ilnnesses and put it themselves)
+-make the connect with doctor id work now

@@ -57,6 +57,74 @@ class _ShareHealthScreenState extends State<ShareHealthScreen> {
     }
   }
 
+  void _showSocialMediaSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Share to Social Media', style: TextStyle(
+              fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary
+            )),
+            const SizedBox(height: 8),
+            const Text('Select a platform to share your health achievements.', style: TextStyle(
+              fontSize: 14, color: AppColors.textSecondary
+            )),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _socialIcon(Icons.camera_alt, 'Instagram', Colors.purple, ctx),
+                _socialIcon(Icons.facebook, 'Facebook', Colors.blue, ctx),
+                _socialIcon(Icons.chat_bubble, 'Twitter', Colors.lightBlue, ctx),
+                _socialIcon(Icons.more_horiz, 'More', Colors.grey, ctx),
+              ],
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _socialIcon(IconData icon, String label, Color color, BuildContext ctx) {
+    return GestureDetector(
+      onTap: () async {
+        Navigator.pop(ctx);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Preparing image for $label...'))
+        );
+        await Future.delayed(const Duration(seconds: 1));
+        if (mounted) {
+           ScaffoldMessenger.of(context).showSnackBar(
+             SnackBar(content: Text('🎉 Shared successfully to $label!'), backgroundColor: AppColors.success)
+           );
+        }
+      },
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: color.withAlpha(20),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: color, size: 32),
+          ),
+          const SizedBox(height: 8),
+          Text(label, style: const TextStyle(color: AppColors.textPrimary, fontSize: 12, fontWeight: FontWeight.w600)),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthProvider>(context);
@@ -201,6 +269,23 @@ class _ShareHealthScreenState extends State<ShareHealthScreen> {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 ),
                 onPressed: _isSharing ? null : () => _shareData(patientUid, providerUid, userProfile?.username ?? 'Patient'),
+              ),
+            ),
+            
+            const SizedBox(height: 16),
+            
+            // Social Media Share Button
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                icon: const Icon(Icons.share, color: AppColors.primary),
+                label: const Text('Share to Social Media', style: TextStyle(color: AppColors.primary, fontSize: 16, fontWeight: FontWeight.bold)),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  side: const BorderSide(color: AppColors.primary, width: 1.5),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                ),
+                onPressed: () => _showSocialMediaSheet(context),
               ),
             ),
           ],

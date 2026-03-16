@@ -301,6 +301,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             _divider(),
             ListTile(
+              leading: _iconBox(Icons.lock_outline, Colors.orange),
+              title: const Text('Change Password',
+                  style: TextStyle(fontWeight: FontWeight.w600)),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.textHint),
+              onTap: () => context.push(AppRoutes.changePassword),
+            ),
+            _divider(),
+            ListTile(
               leading: _iconBox(Icons.logout, AppColors.error),
               title: const Text('Log Out',
                   style: TextStyle(

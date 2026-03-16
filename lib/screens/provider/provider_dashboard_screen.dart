@@ -175,7 +175,47 @@ class ProviderDashboardScreen extends StatelessWidget {
                     ),
                   ),
 
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 24),
+                  
+                  // ── Upcoming Appointments (Mock) ──
+                  const Row(
+                    children: [
+                      Text(
+                        'Upcoming Appointments',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.primary.withAlpha(30)),
+                    ),
+                    child: Column(
+                      children: [
+                        _mockAppointmentTile(
+                           patientName: 'Sarah Jenkins', 
+                           date: 'Tomorrow, 10:00 AM', 
+                           type: 'Video Consult'
+                        ),
+                        const Divider(height: 24),
+                        _mockAppointmentTile(
+                           patientName: 'Michael Chen', 
+                           date: 'Aug 15, 2:30 PM', 
+                           type: 'In-Person Checkup'
+                        ),
+                      ],
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 24),
                   Row(
                     children: [
                       const Text(
@@ -439,6 +479,46 @@ class ProviderDashboardScreen extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _mockAppointmentTile({
+    required String patientName,
+    required String date,
+    required String type,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withAlpha(20),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.calendar_month, color: AppColors.primary, size: 20),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  patientName,
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.textPrimary),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '$type • $date',
+                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                ),
+              ],
+            ),
+          ),
+          const Icon(Icons.more_vert, color: AppColors.textHint, size: 20),
+        ],
       ),
     );
   }

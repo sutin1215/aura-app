@@ -8,9 +8,12 @@ import '../providers/auth_provider.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/register_screen.dart';
 import '../screens/auth/forgot_password_screen.dart';
+import '../screens/auth/change_password_screen.dart';
 import '../screens/onboarding/profile_setup_screen.dart';
 import '../screens/shell/main_shell.dart';
 import '../screens/dashboard/dashboard_screen.dart';
+import '../screens/splash/splash_screen.dart';
+import '../screens/ai/ai_chat_screen.dart'; // NEW
 import '../screens/analytics/analytics_screen.dart';
 import '../screens/tracker/tracker_screen.dart';
 import '../screens/activity/activity_screen.dart';
@@ -46,6 +49,7 @@ import '../screens/provider/patient_chat_screen.dart';
 import '../screens/health/health_data_screen.dart';
 
 class AppRoutes {
+  static const splash = '/splash';
   static const login = '/login';
   static const register = '/register';
   static const forgotPassword = '/forgot-password';
@@ -59,6 +63,7 @@ class AppRoutes {
   static const goals = '/goals';
   static const notifications = '/notifications';
   static const settings = '/settings';
+  static const changePassword = '/settings/change-password';
   static const shareHealth = '/share-health';
   static const hospitalLocator = '/hospital-locator';
   static const chatWithProvider = '/chat-provider';
@@ -69,6 +74,8 @@ class AppRoutes {
   static const aboutUs = '/settings/about';
   static const healthcareInteraction = '/healthcare-interaction';
   static const makeAppointment = '/make-appointment';
+
+  static const aiChat = '/ai-chat'; // NEW
 
   static const partnerSpecialists = '/partner-specialists'; // NEW
   static const connectDoctor = '/connect-doctor'; // NEW
@@ -87,12 +94,15 @@ GoRouter createRouter(BuildContext context) {
   final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
   return GoRouter(
-    initialLocation: AppRoutes.login,
+    initialLocation: AppRoutes.splash,
     refreshListenable: authProvider,
     redirect: (context, state) {
       final auth = Provider.of<AuthProvider>(context, listen: false);
       final isAuth = auth.isAuthenticated;
       final path = state.fullPath ?? '';
+
+      final isOnSplash = path == AppRoutes.splash;
+      if (isOnSplash) return null; // do not redirect while on splash screen
 
       final isOnAuthPage = path == AppRoutes.login ||
           path == AppRoutes.register ||
@@ -121,6 +131,7 @@ GoRouter createRouter(BuildContext context) {
       return null;
     },
     routes: [
+      GoRoute(path: AppRoutes.splash, builder: (_, __) => const SplashScreen()),
       GoRoute(path: AppRoutes.login, builder: (_, __) => const LoginScreen()),
       GoRoute(
           path: AppRoutes.register, builder: (_, __) => const RegisterScreen()),
@@ -130,6 +141,9 @@ GoRouter createRouter(BuildContext context) {
       GoRoute(
           path: AppRoutes.profileSetup,
           builder: (_, __) => const ProfileSetupScreen()),
+      GoRoute(
+          path: AppRoutes.aiChat,
+          builder: (_, __) => const AiChatScreen()),
       ShellRoute(
         builder: (context, state, child) => MainShell(child: child),
         routes: [
@@ -164,6 +178,8 @@ GoRouter createRouter(BuildContext context) {
           builder: (_, __) => const NotificationsScreen()),
       GoRoute(
           path: AppRoutes.settings, builder: (_, __) => const SettingsScreen()),
+      GoRoute(
+          path: AppRoutes.changePassword, builder: (_, __) => const ChangePasswordScreen()),
       GoRoute(
           path: AppRoutes.shareHealth,
           builder: (_, __) => const ShareHealthScreen()),

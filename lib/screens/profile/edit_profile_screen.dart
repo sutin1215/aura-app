@@ -26,13 +26,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController _weightController;
   late TextEditingController _targetWeightController;
 
-  final List<String> _commonConditions = [
-    'Diabetes',
-    'Hypertension',
-    'Asthma',
-    'Heart Disease',
-    'None'
+  final List<String> _allConditions = [
+    'ADHD', 'Allergies', 'Anemia', 'Anxiety', 'Asthma', 'Arthritis', 'Bipolar Disorder', 
+    'Cancer', 'Chronic Kidney Disease', 'COPD', 'Depression', 'Diabetes Type 1', 'Diabetes Type 2',
+    'Epilepsy', 'GERD', 'Heart Disease', 'High Cholesterol', 'Hypertension', 'Hypothyroidism', 
+    'Insomnia', 'Migraine', 'Obesity', 'Osteoporosis', 'PTSD', 'Sleep Apnea', 'Thyroid Disorder', 'None'
   ];
+  List<String> _filteredConditions = [];
+  final TextEditingController _conditionSearchController = TextEditingController();
   List<String> _selectedConditions = [];
 
   @override
@@ -61,6 +62,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _heightController.dispose();
     _weightController.dispose();
     _targetWeightController.dispose();
+    _conditionSearchController.dispose();
     super.dispose();
   }
 
@@ -266,46 +268,120 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     color: AppColors.textPrimary,
                   ),
             ),
+            const SizedBox(height: 8),
+            const Text(
+              'Search and add your existing conditions or type to add a custom one.',
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+            ),
             const SizedBox(height: 16),
+            
+            // Search field
+            TextField(
+              controller: _conditionSearchController,
+              onChanged: (val) {
+                setState(() {
+                  if (val.isEmpty) {
+                    _filteredConditions = [];
+                  } else {
+                    _filteredConditions = _allConditions
+                        .where((c) => c.toLowerCase().contains(val.toLowerCase()) && !_selectedConditions.contains(c))
+                        .toList();
+                  }
+                });
+              },
+              onSubmitted: (val) {
+                if (val.trim().isNotEmpty && !_selectedConditions.contains(val.trim())) {
+                  setState(() {
+                    _selectedConditions.remove('None');
+                    _selectedConditions.add(val.trim());
+                    _conditionSearchController.clear();
+                    _filteredConditions.clear();
+                  });
+                }
+              },
+              decoration: InputDecoration(
+                hintText: 'Search or add condition (e.g., Asthma)',
+                prefixIcon: const Icon(Icons.search, color: AppColors.primary),
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.add_circle, color: AppColors.primary),
+                  onPressed: () {
+                     final val = _conditionSearchController.text;
+                     if (val.trim().isNotEmpty && !_selectedConditions.contains(val.trim())) {
+                        setState(() {
+                          _selectedConditions.remove('None');
+                          _selectedConditions.add(val.trim());
+                          _conditionSearchController.clear();
+                          _filteredConditions.clear();
+                        });
+                     }
+                  }
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide(color: AppColors.textHint.withAlpha(50)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide(color: AppColors.textHint.withAlpha(50)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: const BorderSide(color: AppColors.primary, width: 2),
+                ),
+                filled: true,
+                fillColor: AppColors.surface,
+              ),
+              style: const TextStyle(color: AppColors.textPrimary),
+            ),
+            
+            // Filtered Suggestions
+            if (_filteredConditions.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8.0,
+                runSpacing: 12.0,
+                children: _filteredConditions.map((condition) {
+                  return ActionChip(
+                    label: Text('+ $condition'),
+                    backgroundColor: AppColors.primary.withAlpha(20),
+                    labelStyle: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: const BorderSide(color: AppColors.primary)),
+                    onPressed: () {
+                      setState(() {
+                         _selectedConditions.remove('None');
+                         _selectedConditions.add(condition);
+                         _conditionSearchController.clear();
+                         _filteredConditions.clear();
+                      });
+                    },
+                  );
+                }).toList(),
+              ),
+            ],
+
+            const SizedBox(height: 16),
+            // Selected Conditions
             Wrap(
               spacing: 8.0,
               runSpacing: 12.0,
-              children: _commonConditions.map((condition) {
-                final isSelected = _selectedConditions.contains(condition);
-                return FilterChip(
+              children: _selectedConditions.map((condition) {
+                return Chip(
                   label: Text(condition),
-                  selected: isSelected,
-                  onSelected: (bool selected) {
+                  deleteIcon: const Icon(Icons.close, size: 18, color: AppColors.primary),
+                  onDeleted: () {
                     setState(() {
-                      if (condition == 'None') {
-                        if (selected) {
-                          _selectedConditions.clear();
-                          _selectedConditions.add('None');
-                        } else {
-                          _selectedConditions.remove('None');
-                        }
-                      } else {
-                        _selectedConditions.remove('None');
-                        if (selected) {
-                          _selectedConditions.add(condition);
-                        } else {
-                          _selectedConditions.remove(condition);
-                        }
-                      }
+                      _selectedConditions.remove(condition);
+                      if (_selectedConditions.isEmpty) _selectedConditions.add('None');
                     });
                   },
-                  selectedColor: AppColors.primary.withAlpha(50),
-                  checkmarkColor: AppColors.primary,
-                  backgroundColor: AppColors.surface,
-                  labelStyle: TextStyle(
-                    color: isSelected ? AppColors.primary : AppColors.textSecondary,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  backgroundColor: AppColors.primary.withAlpha(50),
+                  labelStyle: const TextStyle(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.bold,
                   ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
-                    side: BorderSide(
-                      color: isSelected ? AppColors.primary : AppColors.textHint.withAlpha(50),
-                    ),
+                    side: const BorderSide(color: AppColors.primary),
                   ),
                 );
               }).toList(),
