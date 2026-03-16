@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
+import '../../models/chat_message.dart'; // FIX: use shared model, not local class
 import '../../providers/auth_provider.dart';
 import '../../services/ai_service.dart';
 import '../../theme/app_theme.dart';
@@ -13,22 +14,23 @@ class AiChatScreen extends StatefulWidget {
   State<AiChatScreen> createState() => _AiChatScreenState();
 }
 
-class ChatMessage {
-  final String text;
-  final bool isUser;
-
-  ChatMessage(this.text, this.isUser);
-}
+// FIX: Removed duplicate local ChatMessage class that conflicted with
+// lib/models/chat_message.dart. All screens now share the same model.
 
 class _AiChatScreenState extends State<AiChatScreen> {
   final TextEditingController _msgController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final AIService _aiService = AIService();
-  
+
   final List<ChatMessage> _messages = [
-    ChatMessage("Hi there! I'm AURA, your personal health AI. How can I help you today?", false)
+    ChatMessage(
+      text:
+          "Hi there! I'm AURA, your personal health AI. How can I help you today?",
+      isUser: false,
+      timestamp: DateTime.now(),
+    ),
   ];
-  
+
   bool _isTyping = false;
   bool _initialized = false;
 
@@ -40,6 +42,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
 
   Future<void> _initAI() async {
     final auth = Provider.of<AuthProvider>(context, listen: false);
+    // plainText: false — AI Chat uses Markdown for richer formatting
     await _aiService.initialize(auth.userProfile);
     if (mounted) {
       setState(() => _initialized = true);
@@ -62,7 +65,8 @@ class _AiChatScreenState extends State<AiChatScreen> {
     if (text.trim().isEmpty || !_initialized) return;
 
     setState(() {
-      _messages.add(ChatMessage(text, true));
+      _messages.add(
+          ChatMessage(text: text, isUser: true, timestamp: DateTime.now()));
       _isTyping = true;
     });
     _msgController.clear();
@@ -73,7 +77,8 @@ class _AiChatScreenState extends State<AiChatScreen> {
     if (mounted) {
       setState(() {
         _isTyping = false;
-        _messages.add(ChatMessage(response, false));
+        _messages.add(ChatMessage(
+            text: response, isUser: false, timestamp: DateTime.now()));
       });
       _scrollToBottom();
     }
@@ -103,13 +108,19 @@ class _AiChatScreenState extends State<AiChatScreen> {
                   )
                 ],
               ),
-              child: const Icon(Icons.auto_awesome, color: Colors.white, size: 18),
+              child:
+                  const Icon(Icons.auto_awesome, color: Colors.white, size: 18),
             )
-            .animate(onPlay: (controller) => controller.repeat(reverse: true))
-            .shimmer(duration: 2000.ms)
-            .scale(begin: const Offset(1, 1), end: const Offset(1.1, 1.1), duration: 1500.ms),
+                .animate(
+                    onPlay: (controller) => controller.repeat(reverse: true))
+                .shimmer(duration: 2000.ms)
+                .scale(
+                    begin: const Offset(1, 1),
+                    end: const Offset(1.1, 1.1),
+                    duration: 1500.ms),
             const SizedBox(width: 12),
-            const Text('AURA AI', style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text('AURA AI',
+                style: TextStyle(fontWeight: FontWeight.bold)),
           ],
         ),
         backgroundColor: AppColors.background,
@@ -132,8 +143,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
               },
             ),
           ),
-          
-          if (_messages.length == 1) // Only show suggestions at the start
+          if (_messages.length == 1)
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -147,7 +157,6 @@ class _AiChatScreenState extends State<AiChatScreen> {
                 ],
               ),
             ),
-            
           _buildInputArea(),
         ],
       ),
@@ -171,7 +180,8 @@ class _AiChatScreenState extends State<AiChatScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(
-        mainAxisAlignment: msg.isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment:
+            msg.isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (!msg.isUser) ...[
@@ -186,7 +196,8 @@ class _AiChatScreenState extends State<AiChatScreen> {
                   end: Alignment.bottomRight,
                 ),
               ),
-              child: const Icon(Icons.auto_awesome, color: Colors.white, size: 14),
+              child:
+                  const Icon(Icons.auto_awesome, color: Colors.white, size: 14),
             ),
           ],
           Flexible(
@@ -195,8 +206,12 @@ class _AiChatScreenState extends State<AiChatScreen> {
               decoration: BoxDecoration(
                 color: msg.isUser ? AppColors.primary : AppColors.surface,
                 borderRadius: BorderRadius.circular(20).copyWith(
-                  bottomRight: msg.isUser ? const Radius.circular(0) : const Radius.circular(20),
-                  bottomLeft: !msg.isUser ? const Radius.circular(0) : const Radius.circular(20),
+                  bottomRight: msg.isUser
+                      ? const Radius.circular(0)
+                      : const Radius.circular(20),
+                  bottomLeft: !msg.isUser
+                      ? const Radius.circular(0)
+                      : const Radius.circular(20),
                 ),
                 boxShadow: [
                   BoxShadow(
@@ -214,7 +229,10 @@ class _AiChatScreenState extends State<AiChatScreen> {
                   height: 1.4,
                 ),
               ),
-            ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1, end: 0, duration: 400.ms),
+            )
+                .animate()
+                .fadeIn(duration: 400.ms)
+                .slideY(begin: 0.1, end: 0, duration: 400.ms),
           ),
         ],
       ),
@@ -227,38 +245,45 @@ class _AiChatScreenState extends State<AiChatScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-           Container(
-              margin: const EdgeInsets.only(right: 8),
-              padding: const EdgeInsets.all(6),
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: LinearGradient(
-                  colors: [Colors.purpleAccent, AppColors.primary],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-              ),
-              child: const Icon(Icons.auto_awesome, color: Colors.white, size: 14),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(20).copyWith(
-                  bottomLeft: const Radius.circular(0),
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _dot().animate(onPlay: (c) => c.repeat()).fade(duration: 400.ms),
-                  const SizedBox(width: 4),
-                  _dot().animate(onPlay: (c) => c.repeat(), delay: 200.ms).fade(duration: 400.ms),
-                  const SizedBox(width: 4),
-                  _dot().animate(onPlay: (c) => c.repeat(), delay: 400.ms).fade(duration: 400.ms),
-                ],
+          Container(
+            margin: const EdgeInsets.only(right: 8),
+            padding: const EdgeInsets.all(6),
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                colors: [Colors.purpleAccent, AppColors.primary],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
             ),
+            child:
+                const Icon(Icons.auto_awesome, color: Colors.white, size: 14),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(20).copyWith(
+                bottomLeft: const Radius.circular(0),
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _dot()
+                    .animate(onPlay: (c) => c.repeat())
+                    .fade(duration: 400.ms),
+                const SizedBox(width: 4),
+                _dot()
+                    .animate(onPlay: (c) => c.repeat(), delay: 200.ms)
+                    .fade(duration: 400.ms),
+                const SizedBox(width: 4),
+                _dot()
+                    .animate(onPlay: (c) => c.repeat(), delay: 400.ms)
+                    .fade(duration: 400.ms),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -305,7 +330,8 @@ class _AiChatScreenState extends State<AiChatScreen> {
                     borderRadius: BorderRadius.circular(30),
                     borderSide: BorderSide.none,
                   ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
                 ),
                 onSubmitted: _sendMessage,
               ),
@@ -321,7 +347,8 @@ class _AiChatScreenState extends State<AiChatScreen> {
                   ),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.send_rounded, color: Colors.white, size: 20),
+                child: const Icon(Icons.send_rounded,
+                    color: Colors.white, size: 20),
               ),
             ),
           ],

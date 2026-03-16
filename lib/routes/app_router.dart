@@ -13,7 +13,6 @@ import '../screens/onboarding/profile_setup_screen.dart';
 import '../screens/shell/main_shell.dart';
 import '../screens/dashboard/dashboard_screen.dart';
 import '../screens/splash/splash_screen.dart';
-import '../screens/ai/ai_chat_screen.dart'; // NEW
 import '../screens/analytics/analytics_screen.dart';
 import '../screens/tracker/tracker_screen.dart';
 import '../screens/activity/activity_screen.dart';
@@ -27,25 +26,21 @@ import '../screens/settings/settings_screen.dart';
 import '../screens/share/share_health_screen.dart';
 import '../screens/health/hospital_locator_screen.dart';
 import '../screens/health/provider_chat_screen.dart';
-
-// New screens (Phase 1+)
 import '../screens/settings/notification_settings_screen.dart';
 import '../screens/settings/feedback_screen.dart';
 import '../screens/settings/about_screen.dart';
 import '../screens/health/healthcare_interaction_screen.dart';
 import '../screens/health/make_appointment_screen.dart';
-import '../screens/health/partnered_specialists_screen.dart'; // NEW
-import '../screens/health/connect_doctor_screen.dart'; // NEW
+import '../screens/health/partnered_specialists_screen.dart';
+import '../screens/health/connect_doctor_screen.dart';
 import '../screens/family/family_circle_screen.dart';
 import '../screens/menstrual/menstrual_screen.dart';
 import '../screens/menstrual/edit_period_screen.dart';
-
-// Provider portal
+import '../screens/appointments/appointments_screen.dart';
 import '../screens/provider/provider_dashboard_screen.dart';
 import '../screens/provider/patient_detail_screen.dart';
 import '../screens/provider/add_report_screen.dart';
 import '../screens/provider/patient_chat_screen.dart';
-
 import '../screens/health/health_data_screen.dart';
 
 class AppRoutes {
@@ -74,20 +69,17 @@ class AppRoutes {
   static const aboutUs = '/settings/about';
   static const healthcareInteraction = '/healthcare-interaction';
   static const makeAppointment = '/make-appointment';
-
-  static const aiChat = '/ai-chat'; // NEW
-
-  static const partnerSpecialists = '/partner-specialists'; // NEW
-  static const connectDoctor = '/connect-doctor'; // NEW
-
+  static const appointments = '/appointments';
+  static const partnerSpecialists = '/partner-specialists';
+  static const connectDoctor = '/connect-doctor';
   static const familyCircle = '/family-circle';
   static const menstrualCycle = '/menstrual-cycle';
   static const editPeriod = '/edit-period';
-
   static const providerDashboard = '/provider/dashboard';
   static const providerPatientDetail = '/provider/patient';
   static const providerAddReport = '/provider/report';
   static const providerChatPatient = '/provider/chat';
+  // NOTE: aiChat route removed — AI is only available on the Companion tab
 }
 
 GoRouter createRouter(BuildContext context) {
@@ -101,8 +93,7 @@ GoRouter createRouter(BuildContext context) {
       final isAuth = auth.isAuthenticated;
       final path = state.fullPath ?? '';
 
-      final isOnSplash = path == AppRoutes.splash;
-      if (isOnSplash) return null; // do not redirect while on splash screen
+      if (path == AppRoutes.splash) return null;
 
       final isOnAuthPage = path == AppRoutes.login ||
           path == AppRoutes.register ||
@@ -121,12 +112,10 @@ GoRouter createRouter(BuildContext context) {
         }
 
         final isSetupPage = path == AppRoutes.profileSetup;
-        if (!auth.isProfileComplete && !isSetupPage) {
+        if (!auth.isProfileComplete && !isSetupPage)
           return AppRoutes.profileSetup;
-        }
-        if (auth.isProfileComplete && (isOnAuthPage || isSetupPage)) {
+        if (auth.isProfileComplete && (isOnAuthPage || isSetupPage))
           return AppRoutes.dashboard;
-        }
       }
       return null;
     },
@@ -141,9 +130,8 @@ GoRouter createRouter(BuildContext context) {
       GoRoute(
           path: AppRoutes.profileSetup,
           builder: (_, __) => const ProfileSetupScreen()),
-      GoRoute(
-          path: AppRoutes.aiChat,
-          builder: (_, __) => const AiChatScreen()),
+
+      // ── Main shell (bottom nav) ────────────────────────────────────────────
       ShellRoute(
         builder: (context, state, child) => MainShell(child: child),
         routes: [
@@ -164,6 +152,8 @@ GoRouter createRouter(BuildContext context) {
               builder: (_, __) => const ProfileScreen()),
         ],
       ),
+
+      // ── Standalone screens ─────────────────────────────────────────────────
       GoRoute(
           path: '/health-data', builder: (_, __) => const HealthDataScreen()),
       GoRoute(
@@ -179,7 +169,8 @@ GoRouter createRouter(BuildContext context) {
       GoRoute(
           path: AppRoutes.settings, builder: (_, __) => const SettingsScreen()),
       GoRoute(
-          path: AppRoutes.changePassword, builder: (_, __) => const ChangePasswordScreen()),
+          path: AppRoutes.changePassword,
+          builder: (_, __) => const ChangePasswordScreen()),
       GoRoute(
           path: AppRoutes.shareHealth,
           builder: (_, __) => const ShareHealthScreen()),
@@ -202,6 +193,9 @@ GoRouter createRouter(BuildContext context) {
           path: AppRoutes.makeAppointment,
           builder: (_, __) => const MakeAppointmentScreen()),
       GoRoute(
+          path: AppRoutes.appointments,
+          builder: (_, __) => const AppointmentsScreen()),
+      GoRoute(
           path: AppRoutes.partnerSpecialists,
           builder: (_, __) => const PartnerSpecialistsScreen()),
       GoRoute(
@@ -216,6 +210,8 @@ GoRouter createRouter(BuildContext context) {
       GoRoute(
           path: AppRoutes.editPeriod,
           builder: (_, __) => const EditPeriodScreen()),
+
+      // ── Provider portal ───────────────────────────────────────────────────
       GoRoute(
           path: AppRoutes.providerDashboard,
           builder: (_, __) => const ProviderDashboardScreen()),

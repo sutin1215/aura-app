@@ -46,52 +46,44 @@ class FirestoreService {
 
     final Map<String, dynamic> data = {};
 
-    if (steps != null) {
-      data['steps'] = FieldValue.increment(steps);
-    }
-    if (caloriesBurned != null) {
+    // Cumulative fields — always incremented
+    if (steps != null) data['steps'] = FieldValue.increment(steps);
+    if (caloriesBurned != null)
       data['caloriesBurned'] = FieldValue.increment(caloriesBurned);
-    }
-    if (caloriesConsumed != null) {
+    if (caloriesConsumed != null)
       data['caloriesConsumed'] = FieldValue.increment(caloriesConsumed);
-    }
-    if (waterIntakeMl != null) {
+    if (waterIntakeMl != null)
       data['waterIntakeMl'] = FieldValue.increment(waterIntakeMl);
-    }
-    if (sleepMinutes != null) {
+    if (sleepMinutes != null)
       data['sleepMinutes'] = FieldValue.increment(sleepMinutes);
-    }
-    if (activeMinutes != null) {
+    if (activeMinutes != null)
       data['activeMinutes'] = FieldValue.increment(activeMinutes);
-    }
 
-    if (heartRate != null) {
-      data['heartRate'] = heartRate;
-    }
-    if (weight != null) {
-      data['weight'] = weight;
-    }
-    if (bloodPressureSystolic != null) {
+    // Point-in-time fields — always overwritten
+    if (heartRate != null) data['heartRate'] = heartRate;
+    if (weight != null) data['weight'] = weight;
+    if (bloodPressureSystolic != null)
       data['bloodPressureSystolic'] = bloodPressureSystolic;
-    }
-    if (bloodPressureDiastolic != null) {
+    if (bloodPressureDiastolic != null)
       data['bloodPressureDiastolic'] = bloodPressureDiastolic;
-    }
-    if (bloodGlucose != null) {
-      data['bloodGlucose'] = bloodGlucose;
-    }
-    if (oxygenSaturation != null) {
-      data['oxygenSaturation'] = oxygenSaturation;
-    }
+    if (bloodGlucose != null) data['bloodGlucose'] = bloodGlucose;
+    if (oxygenSaturation != null) data['oxygenSaturation'] = oxygenSaturation;
 
-    data['date'] = FieldValue.serverTimestamp();
+    // FIX: Use Timestamp.fromDate instead of FieldValue.serverTimestamp().
+    // serverTimestamp() is a sentinel — the local snapshot returns null before
+    // the server responds, which caused a null-cast crash in HealthDay.fromFirestore.
+    // Timestamp.fromDate is immediate and works correctly offline too.
+    data['date'] = Timestamp.fromDate(DateTime.now());
+
     await docRef.set(data, SetOptions(merge: true));
   }
 
   // ── Historical Metrics ─────────────────────────────────────────────────────
 
   Stream<List<HealthDay>> streamHistoricalMetrics(String userId, int daysBack) {
-    final cutoff = DateTime.now().subtract(Duration(days: daysBack));
+    final cutoff = Timestamp.fromDate(
+      DateTime.now().subtract(Duration(days: daysBack)),
+    );
     return _db
         .collection('users')
         .doc(userId)
@@ -300,7 +292,6 @@ class FirestoreService {
             (snap) => snap.docs.map((d) => {'id': d.id, ...d.data()}).toList());
   }
 
-  /// Marks a single notification as read.
   Future<void> markNotificationRead(
       String userId, String notificationId) async {
     await _db
@@ -311,7 +302,6 @@ class FirestoreService {
         .update({'isRead': true});
   }
 
-  /// Marks every notification as read in a single batch write.
   Future<void> markAllNotificationsRead(String userId) async {
     final snap = await _db
         .collection('users')
@@ -327,7 +317,6 @@ class FirestoreService {
     await batch.commit();
   }
 
-  /// Deletes a single notification document.
   Future<void> deleteNotification({
     required String userId,
     required String notificationId,
@@ -352,7 +341,7 @@ class FirestoreService {
       'doctorName': doctorName,
       'dateTime': Timestamp.fromDate(dateTime),
       'note': note,
-      'createdAt': FieldValue.serverTimestamp(),
+      'createdAt': Timestamp.fromDate(DateTime.now()),
     });
   }
 
@@ -418,8 +407,6 @@ class FirestoreService {
     return doc.data();
   }
 
-  /// Stream of patient UIDs assigned to this provider.
-  /// Used by ProviderDashboardScreen.
   Stream<List<String>> streamPatientIds(String providerUid) {
     return _db
         .collection('users')
@@ -437,8 +424,6 @@ class FirestoreService {
     return snap.docs.map((d) => {'uid': d.id, ...d.data()}).toList();
   }
 
-  /// Stream of reports for a specific patient.
-  /// Used by PatientDetailScreen.
   Stream<List<Map<String, dynamic>>> streamPatientReports(String patientUid) {
     return _db
         .collection('users')
@@ -450,8 +435,6 @@ class FirestoreService {
             (snap) => snap.docs.map((d) => {'id': d.id, ...d.data()}).toList());
   }
 
-  /// Saves a text-based report for a patient (no PDF upload needed for demo).
-  /// Used by AddReportScreen.
   Future<void> addReport({
     required String patientUid,
     required String providerName,
@@ -466,13 +449,10 @@ class FirestoreService {
     });
   }
 
-  /// Links a patient to a provider by writing assignedProviderId on the
-  /// patient's user document. Used by SettingsScreen.
   Future<void> linkPatientToProvider({
     required String patientUid,
     required String providerUid,
   }) async {
-    // Verify the provider exists first
     final providerDoc = await _db.collection('users').doc(providerUid).get();
     if (!providerDoc.exists) {
       throw Exception('Provider ID not found. Please check and try again.');
@@ -481,14 +461,11 @@ class FirestoreService {
     if (providerData?['role'] != 'provider') {
       throw Exception('That ID does not belong to a healthcare provider.');
     }
-
     await _db.collection('users').doc(patientUid).update({
       'assignedProviderId': providerUid,
     });
   }
 
-  /// Assigns a provider to a patient directly — used by the partner
-  /// specialist flow where the providerUid is a trusted hardcoded value.
   Future<void> assignProvider({
     required String patientUid,
     required String providerUid,

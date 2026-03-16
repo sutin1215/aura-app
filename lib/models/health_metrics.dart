@@ -4,9 +4,8 @@ class HealthDay {
   final String id;
   final DateTime date;
   final int steps;
-  final int caloriesBurned; // calories burned via exercise/activity
-  final int
-      caloriesConsumed; // FIX: was missing — meals were wrongly adding to caloriesBurned
+  final int caloriesBurned;
+  final int caloriesConsumed;
   final int waterIntakeMl;
   final int sleepMinutes;
 
@@ -38,9 +37,26 @@ class HealthDay {
 
   factory HealthDay.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
+
+    // FIX: 'date' was written with FieldValue.serverTimestamp() which returns
+    // null in the local pending-write snapshot before the server responds.
+    // Guard against null here to prevent a cast crash on first write.
+    DateTime parsedDate;
+    final rawDate = data['date'];
+    if (rawDate is Timestamp) {
+      parsedDate = rawDate.toDate();
+    } else {
+      // Fall back to parsing the doc ID (format: yyyy-MM-dd) if available.
+      try {
+        parsedDate = DateTime.parse(doc.id);
+      } catch (_) {
+        parsedDate = DateTime.now();
+      }
+    }
+
     return HealthDay(
       id: doc.id,
-      date: (data['date'] as Timestamp).toDate(),
+      date: parsedDate,
       steps: data['steps'] ?? 0,
       caloriesBurned: data['caloriesBurned'] ?? 0,
       caloriesConsumed: data['caloriesConsumed'] ?? 0,

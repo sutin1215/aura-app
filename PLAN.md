@@ -412,11 +412,10 @@ Phase 21 🔲  Web responsive polish + final testing //fix the layout for web
 ```
 
 
--biomarker button with fake data
--check fr again from the report
+-biomarker button with fake data(you can connect with your devices but now can just fake it)
 -change password(2 step verification)
--share health data to social media
+-share health data to social media functionalities
 -doctor also can check appoinment dates
--patient change to user
+-patient name change to user(more suitable to more people)
 -make the medical history more immersive(search existing ilnnesses and put it themselves)
 -make the connect with doctor id work now

@@ -1,64 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../models/chat_message.dart';
+import '../../providers/auth_provider.dart';
+import '../../services/ai_service.dart';
 import '../../theme/app_theme.dart';
-
-// Smart scripted responses for the demo
-const _responses = [
-  "Great to hear! Remember, small consistent habits lead to big health improvements. 💪",
-  "I've logged that for you. Keep up the great work — you're on track today!",
-  "That's really useful to know. Make sure you're drinking enough water too — aim for 2 litres today! 💧",
-  "I noticed your steps are looking good today! How about a short walk after dinner to hit your goal?",
-  "Sleep is so important for recovery. Try to wind down by 10 PM tonight for your best rest. 😴",
-  "Your heart rate data looks healthy. Keep staying active and I'll keep monitoring your trends.",
-  "Nutrition matters! Have you logged today's meals yet? Head to the Diet Tracker to add them. 🥗",
-  "You're doing amazing. Consistency is key — every day counts towards your health goals!",
-  "Remember to check in with Dr. Kang if anything feels off. Your health comes first. 🩺",
-  "I'm always here to help you stay on top of your wellness journey. What else can I assist with?",
-];
-
-int _responseIndex = 0;
-
-String _nextResponse(String input) {
-  final lower = input.toLowerCase();
-  if (lower.contains('sleep') || lower.contains('tired')) {
-    return "Sleep is crucial for recovery and wellbeing. Aim for 7–9 hours tonight. Try a relaxing routine before bed. 😴";
-  }
-  if (lower.contains('water') || lower.contains('drink')) {
-    return "Staying hydrated is so important! Aim for at least 2,000ml of water today. I'll remind you to log it. 💧";
-  }
-  if (lower.contains('step') ||
-      lower.contains('walk') ||
-      lower.contains('run')) {
-    return "Movement is medicine! Even a 20-minute walk can boost your mood and energy. Keep it up! 🚶";
-  }
-  if (lower.contains('eat') ||
-      lower.contains('food') ||
-      lower.contains('meal') ||
-      lower.contains('calori')) {
-    return "Good nutrition fuels everything. Have you logged today's meals? Head to the Diet Tracker to stay on track. 🥗";
-  }
-  if (lower.contains('stress') ||
-      lower.contains('anxious') ||
-      lower.contains('worry')) {
-    return "I hear you. Stress affects your health significantly. Try a few deep breaths and remember you can always reach out to Dr. Kang. 🧘";
-  }
-  if (lower.contains('pain') ||
-      lower.contains('hurt') ||
-      lower.contains('sick')) {
-    return "I'm sorry to hear that. Please don't ignore persistent symptoms — reach out to Dr. Kang through the Healthcare section. 🩺";
-  }
-  if (lower.contains('hello') ||
-      lower.contains('hi') ||
-      lower.contains('hey')) {
-    return "Hello! 👋 I'm AURA, your personal health companion. How are you feeling today?";
-  }
-  if (lower.contains('thank')) {
-    return "You're very welcome! I'm always here to support your health journey. 😊";
-  }
-  final response = _responses[_responseIndex % _responses.length];
-  _responseIndex++;
-  return response;
-}
 
 const _suggestions = [
   "How am I doing today?",
@@ -74,10 +19,14 @@ class CompanionScreen extends StatefulWidget {
   State<CompanionScreen> createState() => _CompanionScreenState();
 }
 
-class _CompanionScreenState extends State<CompanionScreen>
-    with SingleTickerProviderStateMixin {
+class _CompanionScreenState extends State<CompanionScreen> {
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+
+  final AIService _aiService = AIService();
+  bool _aiReady = false;
+  bool _aiInitializing = false;
+  String? _aiError;
   bool _isTyping = false;
 
   final List<ChatMessage> _messages = [
@@ -90,15 +39,52 @@ class _CompanionScreenState extends State<CompanionScreen>
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _initAI();
+  }
+
+  Future<void> _initAI() async {
+    if (!mounted) return;
+    setState(() {
+      _aiInitializing = true;
+      _aiError = null;
+    });
+
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+    // plainText: true — no markdown leaking into chat bubbles
+    final error =
+        await _aiService.initialize(auth.userProfile, plainText: true);
+
+    if (!mounted) return;
+    if (error != null) {
+      setState(() {
+        _aiInitializing = false;
+        _aiError = error;
+      });
+    } else {
+      setState(() {
+        _aiInitializing = false;
+        _aiReady = true;
+      });
+    }
+  }
+
+  Future<void> _retryInit() async {
+    _aiService.reset();
+    await _initAI();
+  }
+
+  @override
   void dispose() {
     _textController.dispose();
     _scrollController.dispose();
     super.dispose();
   }
 
-  void _handleSubmitted(String text) {
+  Future<void> _handleSubmitted(String text) async {
     final trimmed = text.trim();
-    if (trimmed.isEmpty) return;
+    if (trimmed.isEmpty || !_aiReady || _isTyping) return;
     _textController.clear();
 
     setState(() {
@@ -108,19 +94,15 @@ class _CompanionScreenState extends State<CompanionScreen>
     });
     _scrollToBottom();
 
-    final delay = 800 + (trimmed.length * 10).clamp(0, 1200);
-    Future.delayed(Duration(milliseconds: delay), () {
-      if (!mounted) return;
-      setState(() {
-        _isTyping = false;
-        _messages.add(ChatMessage(
-          text: _nextResponse(trimmed),
-          isUser: false,
-          timestamp: DateTime.now(),
-        ));
-      });
-      _scrollToBottom();
+    final response = await _aiService.sendMessage(trimmed);
+
+    if (!mounted) return;
+    setState(() {
+      _isTyping = false;
+      _messages.add(ChatMessage(
+          text: response, isUser: false, timestamp: DateTime.now()));
     });
+    _scrollToBottom();
   }
 
   void _scrollToBottom() {
@@ -133,6 +115,22 @@ class _CompanionScreenState extends State<CompanionScreen>
         );
       }
     });
+  }
+
+  // ── Status helpers ─────────────────────────────────────────────────────────
+
+  Color get _statusColor {
+    if (_aiError != null) return AppColors.error;
+    if (_aiInitializing) return AppColors.warning;
+    if (_aiReady) return AppColors.success;
+    return AppColors.textHint;
+  }
+
+  String get _statusText {
+    if (_aiError != null) return 'Connection failed';
+    if (_aiInitializing) return 'Connecting...';
+    if (_aiReady) return 'Online';
+    return 'Offline';
   }
 
   @override
@@ -167,17 +165,20 @@ class _CompanionScreenState extends State<CompanionScreen>
                     Container(
                       width: 8,
                       height: 8,
-                      decoration: const BoxDecoration(
-                        color: AppColors.success,
+                      decoration: BoxDecoration(
+                        color: _statusColor,
                         shape: BoxShape.circle,
                       ),
                     ),
                     const SizedBox(width: 4),
-                    const Text('Online',
-                        style: TextStyle(
-                            fontSize: 11,
-                            color: AppColors.success,
-                            fontWeight: FontWeight.w500)),
+                    Text(
+                      _statusText,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: _statusColor,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                   ],
                 ),
               ],
@@ -187,7 +188,34 @@ class _CompanionScreenState extends State<CompanionScreen>
       ),
       body: Column(
         children: [
-          // ── Message List ──────────────────────────────────────────────
+          // ── Error banner ──────────────────────────────────────────────
+          if (_aiError != null)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              color: AppColors.error.withAlpha(20),
+              child: Row(
+                children: [
+                  const Icon(Icons.wifi_off, color: AppColors.error, size: 18),
+                  const SizedBox(width: 10),
+                  const Expanded(
+                    child: Text(
+                      "Couldn't reach AURA AI. Check your internet connection.",
+                      style: TextStyle(color: AppColors.error, fontSize: 13),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: _retryInit,
+                    child: const Text('Retry',
+                        style: TextStyle(
+                            color: AppColors.error,
+                            fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              ),
+            ),
+
+          // ── Message list ──────────────────────────────────────────────
           Expanded(
             child: ListView.builder(
               controller: _scrollController,
@@ -195,21 +223,21 @@ class _CompanionScreenState extends State<CompanionScreen>
               itemCount: _messages.length + (_isTyping ? 1 : 0),
               itemBuilder: (context, index) {
                 if (_isTyping && index == _messages.length) {
-                  return _TypingIndicator();
+                  return const _TypingIndicator();
                 }
                 return _MessageBubble(message: _messages[index]);
               },
             ),
           ),
 
-          // ── Quick Suggestion Chips ────────────────────────────────────
-          if (_messages.length <= 2)
+          // ── Quick suggestion chips (shown until user sends first message) ─
+          if (_messages.length <= 2 && _aiReady)
             _SuggestionRow(
               suggestions: _suggestions,
               onTap: _handleSubmitted,
             ),
 
-          // ── Input Bar ────────────────────────────────────────────────
+          // ── Input bar ─────────────────────────────────────────────────
           Container(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
             decoration: BoxDecoration(
@@ -230,10 +258,15 @@ class _CompanionScreenState extends State<CompanionScreen>
                     child: TextField(
                       controller: _textController,
                       textInputAction: TextInputAction.send,
-                      onSubmitted: _handleSubmitted,
+                      onSubmitted: _aiReady ? _handleSubmitted : null,
+                      enabled: _aiReady && !_isTyping,
                       maxLines: null,
                       decoration: InputDecoration(
-                        hintText: "Tell AURA how you're feeling...",
+                        hintText: _aiInitializing
+                            ? 'AURA is waking up...'
+                            : _aiError != null
+                                ? 'AI unavailable — tap Retry above'
+                                : "Tell AURA how you're feeling...",
                         hintStyle: const TextStyle(color: AppColors.textHint),
                         filled: true,
                         fillColor: AppColors.background,
@@ -248,15 +281,16 @@ class _CompanionScreenState extends State<CompanionScreen>
                   ),
                   const SizedBox(width: 8),
                   GestureDetector(
-                    onTap: () => _handleSubmitted(_textController.text),
+                    onTap: (_aiReady && !_isTyping)
+                        ? () => _handleSubmitted(_textController.text)
+                        : null,
                     child: Container(
                       padding: const EdgeInsets.all(12),
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [
-                            AppColors.gradientStart,
-                            AppColors.gradientEnd
-                          ],
+                          colors: (_aiReady && !_isTyping)
+                              ? [AppColors.gradientStart, AppColors.gradientEnd]
+                              : [AppColors.textHint, AppColors.textHint],
                         ),
                         shape: BoxShape.circle,
                       ),
@@ -356,6 +390,8 @@ class _MessageBubble extends StatelessWidget {
 
 // ── Typing Indicator ──────────────────────────────────────────────────────────
 class _TypingIndicator extends StatefulWidget {
+  const _TypingIndicator();
+
   @override
   State<_TypingIndicator> createState() => _TypingIndicatorState();
 }
@@ -370,26 +406,26 @@ class _TypingIndicatorState extends State<_TypingIndicator>
     super.initState();
     _controllers = List.generate(
       3,
-      (i) => AnimationController(
+      (_) => AnimationController(
         vsync: this,
         duration: const Duration(milliseconds: 600),
-      )..repeat(reverse: true, min: i * 200, max: double.infinity),
+      ),
     );
-    for (var i = 0; i < 3; i++) {
-      Future.delayed(Duration(milliseconds: i * 200), () {
-        if (mounted) _controllers[i].repeat(reverse: true);
-      });
-    }
     _animations = _controllers
         .map((c) => Tween<double>(begin: 0, end: 1).animate(
               CurvedAnimation(parent: c, curve: Curves.easeInOut),
             ))
         .toList();
+    for (var i = 0; i < 3; i++) {
+      Future.delayed(Duration(milliseconds: i * 200), () {
+        if (mounted) _controllers[i].repeat(reverse: true);
+      });
+    }
   }
 
   @override
   void dispose() {
-    for (var c in _controllers) {
+    for (final c in _controllers) {
       c.dispose();
     }
     super.dispose();

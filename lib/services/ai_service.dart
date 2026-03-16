@@ -1,55 +1,77 @@
 import 'package:google_generative_ai/google_generative_ai.dart';
 import '../models/user_profile.dart';
+import '../config/app_config.dart';
 
 class AIService {
-  static const String _apiKey = 'AIzaSyBrTnxFnQzApw5KCa4L9jVx_jsXq4JPp5M';
-  
-  late GenerativeModel _model;
-  late ChatSession _chatSession;
-  
+  GenerativeModel? _model;
+  ChatSession? _chatSession;
   bool _isInitialized = false;
 
-  Future<void> initialize(UserProfile? userProfile) async {
-    if (_isInitialized) return;
+  bool get isReady => _isInitialized;
 
-    String systemInstructions = '''
+  /// Initialise the Gemini session.
+  ///
+  /// [plainText] – true for the Companion tab (no markdown in bubbles).
+  /// Returns an error message string on failure, null on success.
+  Future<String?> initialize(UserProfile? userProfile,
+      {bool plainText = false}) async {
+    if (_isInitialized) return null;
+
+    final formattingInstruction = plainText
+        ? 'Respond in plain, friendly conversational text only. '
+            'No markdown, no bullet points, no asterisks, no headers. '
+            'Keep responses to 2–3 short sentences maximum.'
+        : 'Keep your answers concise and engaging. '
+            'Use Markdown formatting where it helps clarity.';
+
+    final systemInstructions = '''
 You are AURA, an empathetic, highly knowledgeable, and encouraging virtual health companion and AI coach.
 Your goal is to help your user understand their health data, offer practical wellness advice, and motivate them to reach their goals.
-Keep your answers concise, engaging, and perfectly formatted in Markdown.
+$formattingInstruction
 Never provide definitive medical diagnoses, but do offer general physiology facts and lifestyle tips.
 
-Here is what you know about the user you are talking to:
+Here is what you know about the user:
 - Name: ${userProfile?.username ?? 'User'}
 - Gender: ${userProfile?.gender ?? 'Not specified'}
 - Height: ${userProfile?.height ?? 0} cm
 - Current Weight: ${userProfile?.weight ?? 0} kg
 - Target Weight: ${userProfile?.targetWeight != null ? '${userProfile!.targetWeight} kg' : 'Not specified'}
-- Known Medical Conditions: ${userProfile?.healthConditions.join(', ') ?? 'None reported'}
+- Known Medical Conditions: ${userProfile?.healthConditions.isNotEmpty == true ? userProfile!.healthConditions.join(', ') : 'None reported'}
 
-Always factor this context into your responses gracefully. For instance, if they ask for advice on losing weight, consider their current and target weight. If they have Asthma, avoid suggesting intense aerobic workouts without a warm-up. Ensure your tone is friendly, professional, and warmly personalized.
+Always factor this context into your responses gracefully. Be friendly, professional, and warmly personalized.
 ''';
 
-    _model = GenerativeModel(
-      model: 'gemini-1.5-flash',
-      apiKey: _apiKey,
-      systemInstruction: Content.system(systemInstructions),
-    );
-
-    _chatSession = _model.startChat();
-    _isInitialized = true;
+    try {
+      _model = GenerativeModel(
+        model: 'gemini-1.5-flash',
+        apiKey: AppConfig.geminiApiKey,
+        systemInstruction: Content.system(systemInstructions),
+      );
+      _chatSession = _model!.startChat();
+      _isInitialized = true;
+      return null; // success
+    } catch (e) {
+      return 'Failed to start AI: $e';
+    }
   }
 
   Future<String> sendMessage(String text) async {
-    if (!_isInitialized) {
-      return "I'm sorry, I'm still waking up. Please try again in a moment.";
+    if (!_isInitialized || _chatSession == null) {
+      return "I'm not ready yet — please wait a moment and try again.";
     }
-
     try {
-      final response = await _chatSession.sendMessage(Content.text(text));
-      return response.text ?? "I'm having trouble thinking right now. Could you rephrase?";
+      final response = await _chatSession!.sendMessage(Content.text(text));
+      return response.text?.trim() ??
+          "I'm having trouble thinking right now. Could you rephrase?";
     } catch (e) {
-      print('Error communicating with Gemini: $e');
-      return "I ran into a connection issue. Please check your internet or try again later!";
+      return "I ran into a connection issue. Please check your internet and try again!";
     }
+  }
+
+  /// Resets so initialize() can be called again after an error + retry.
+  void reset() {
+    _model = null;
+    _chatSession = null;
+    _isInitialized = false;
   }
 }

@@ -38,30 +38,23 @@ class _HealthDataScreenState extends State<HealthDataScreen> {
       setState(() => _isLoading = false);
       return;
     }
-
     try {
-      final db = FirestoreService();
-      await for (final day in db.streamTodayMetrics(uid).take(1)) {
+      await for (final day
+          in FirestoreService().streamTodayMetrics(uid).take(1)) {
         if (!mounted) return;
         setState(() {
-          if (day.heartRate > 0) {
+          if (day.heartRate > 0)
             _heartRateController.text = day.heartRate.toString();
-          }
-          if (day.weight > 0) {
+          if (day.weight > 0)
             _weightController.text = day.weight.toStringAsFixed(1);
-          }
-          if (day.bloodPressureSystolic > 0) {
+          if (day.bloodPressureSystolic > 0)
             _bpSystolicController.text = day.bloodPressureSystolic.toString();
-          }
-          if (day.bloodPressureDiastolic > 0) {
+          if (day.bloodPressureDiastolic > 0)
             _bpDiastolicController.text = day.bloodPressureDiastolic.toString();
-          }
-          if (day.bloodGlucose > 0) {
+          if (day.bloodGlucose > 0)
             _glucoseController.text = day.bloodGlucose.toStringAsFixed(1);
-          }
-          if (day.oxygenSaturation > 0) {
+          if (day.oxygenSaturation > 0)
             _oxygenController.text = day.oxygenSaturation.toStringAsFixed(1);
-          }
           _isLoading = false;
         });
         return;
@@ -104,18 +97,18 @@ class _HealthDataScreenState extends State<HealthDataScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-              content: Text('✅ Health vitals saved!'),
-              backgroundColor: AppColors.success),
+            content: Text('✅ Health vitals saved!'),
+            backgroundColor: AppColors.success,
+          ),
         );
         context.pop();
       }
     } catch (e) {
-      if (mounted) {
+      if (mounted)
         setState(() {
           _errorMessage = e.toString();
           _isSaving = false;
         });
-      }
     }
   }
 
@@ -141,7 +134,7 @@ class _HealthDataScreenState extends State<HealthDataScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // ── Info Banner ───────────────────────────────────
+                    // ── Info banner ───────────────────────────────────────
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
@@ -167,10 +160,11 @@ class _HealthDataScreenState extends State<HealthDataScreen> {
                                         fontWeight: FontWeight.bold,
                                         fontSize: 16)),
                                 Text(
-                                    'Fields pre-filled from today\'s data. Update as needed.',
-                                    style: TextStyle(
-                                        color: Colors.white.withAlpha(200),
-                                        fontSize: 12)),
+                                  "Fields pre-filled from today's data. Update as needed.",
+                                  style: TextStyle(
+                                      color: Colors.white.withAlpha(200),
+                                      fontSize: 12),
+                                ),
                               ],
                             ),
                           ),
@@ -195,8 +189,8 @@ class _HealthDataScreenState extends State<HealthDataScreen> {
 
                     const SizedBox(height: 24),
 
-                    // ── Cardiovascular ────────────────────────────────
-                    _sectionLabel('❤️  Cardiovascular', AppColors.heartRate),
+                    // ── Cardiovascular ────────────────────────────────────
+                    _sectionLabel('❤️  Cardiovascular'),
                     const SizedBox(height: 12),
                     _card(children: [
                       _vitalField(
@@ -210,6 +204,9 @@ class _HealthDataScreenState extends State<HealthDataScreen> {
                         range: '40–200',
                       ),
                       const SizedBox(height: 14),
+                      // FIX: each BP field has its own range label below the
+                      // text input rather than in the header row, so the
+                      // half-width columns never overflow.
                       Row(
                         children: [
                           Expanded(
@@ -243,8 +240,8 @@ class _HealthDataScreenState extends State<HealthDataScreen> {
 
                     const SizedBox(height: 20),
 
-                    // ── Body Metrics ──────────────────────────────────
-                    _sectionLabel('⚖️  Body Metrics', AppColors.weight),
+                    // ── Body metrics ──────────────────────────────────────
+                    _sectionLabel('⚖️  Body Metrics'),
                     const SizedBox(height: 12),
                     _card(children: [
                       _vitalField(
@@ -261,8 +258,8 @@ class _HealthDataScreenState extends State<HealthDataScreen> {
 
                     const SizedBox(height: 20),
 
-                    // ── Blood Work ────────────────────────────────────
-                    _sectionLabel('🩸  Blood Work', Colors.orange),
+                    // ── Blood work ────────────────────────────────────────
+                    _sectionLabel('🩸  Blood Work'),
                     const SizedBox(height: 12),
                     _card(children: [
                       _vitalField(
@@ -290,7 +287,7 @@ class _HealthDataScreenState extends State<HealthDataScreen> {
 
                     const SizedBox(height: 32),
 
-                    // ── Save ──────────────────────────────────────────
+                    // ── Save button ───────────────────────────────────────
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton.icon(
@@ -325,14 +322,12 @@ class _HealthDataScreenState extends State<HealthDataScreen> {
     );
   }
 
-  Widget _sectionLabel(String text, Color color) => Row(
-        children: [
-          Text(text,
-              style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15,
-                  color: AppColors.textPrimary)),
-        ],
+  Widget _sectionLabel(String text) => Text(
+        text,
+        style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 15,
+            color: AppColors.textPrimary),
       );
 
   Widget _card({required List<Widget> children}) => Container(
@@ -363,22 +358,34 @@ class _HealthDataScreenState extends State<HealthDataScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // FIX: replaced Row(Spacer + two Texts) with a Column layout.
+        // The old Row had no Flexible wrapping on either Text, so long labels
+        // like "Oxygen Saturation (SpO₂)" + "Range: 80–100 %" overflowed by
+        // ~44–49 px, and BP labels in half-width Expanded columns were worse.
+        // Now: label + icon on one line (Flexible prevents overflow),
+        // range hint sits directly below in smaller grey text.
         Row(
           children: [
             Icon(icon, color: color, size: 16),
             const SizedBox(width: 6),
-            Text(label,
+            Flexible(
+              child: Text(
+                label,
                 style: const TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: 13,
-                    color: AppColors.textPrimary)),
-            const Spacer(),
-            Text('Range: $range $suffix',
-                style:
-                    const TextStyle(color: AppColors.textHint, fontSize: 10)),
+                    color: AppColors.textPrimary),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
           ],
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 2),
+        Text(
+          'Range: $range $suffix',
+          style: const TextStyle(color: AppColors.textHint, fontSize: 10),
+        ),
+        const SizedBox(height: 6),
         TextFormField(
           controller: controller,
           keyboardType: TextInputType.numberWithOptions(decimal: isDouble),
