@@ -313,7 +313,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               title: const Text('Log Out',
                   style: TextStyle(
                       fontWeight: FontWeight.bold, color: AppColors.error)),
-              onTap: () => auth.signOut(),
+              onTap: () => _confirmLogout(context, auth),
             ),
           ]),
 
@@ -376,4 +376,35 @@ class _SettingsScreenState extends State<SettingsScreen> {
       indent: 56,
       endIndent: 20,
       color: AppColors.textHint.withAlpha(40));
+
+  void _confirmLogout(BuildContext context, AuthProvider auth) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Log Out',
+            style: TextStyle(fontWeight: FontWeight.bold)),
+        content: const Text('Are you sure you want to log out of AURA?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.error,
+                minimumSize: Size.zero,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10)),
+            onPressed: () {
+              Navigator.pop(ctx);
+              auth.signOut();
+            },
+            child:
+                const Text('Log Out', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
 }

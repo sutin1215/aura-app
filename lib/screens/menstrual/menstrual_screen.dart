@@ -3,27 +3,65 @@ import 'package:go_router/go_router.dart';
 import '../../theme/app_theme.dart';
 import '../../routes/app_router.dart';
 
-// ── Fake cycle data ────────────────────────────────────────────────────────────
-final _cycleHistory = [
-  {'start': DateTime(2025, 2, 3), 'end': DateTime(2025, 2, 7), 'length': 5},
-  {'start': DateTime(2025, 1, 5), 'end': DateTime(2025, 1, 9), 'length': 5},
-  {'start': DateTime(2024, 12, 8), 'end': DateTime(2024, 12, 12), 'length': 5},
-];
-
-final _nextPeriodDate = DateTime(2025, 3, 5);
-final _lastPeriodDate = DateTime(2025, 2, 3);
-const _avgCycleLength = 30;
+// ── Relative demo data (computed from today so it never goes stale) ────────────
+const _avgCycleLength = 28;
 const _avgPeriodLength = 5;
 
+/// Returns demo data anchored to today so cycle day is always 1–28.
+class _CycleData {
+  static final DateTime today = DateTime.now();
+
+  // Simulate: user is currently on day 14 of their cycle
+  static const int _currentDayInCycle = 14;
+
+  static DateTime get lastPeriodStart =>
+      DateTime(today.year, today.month, today.day)
+          .subtract(Duration(days: _currentDayInCycle - 1));
+
+  static DateTime get lastPeriodEnd =>
+      lastPeriodStart.add(const Duration(days: _avgPeriodLength - 1));
+
+  static DateTime get nextPeriodDate =>
+      lastPeriodStart.add(const Duration(days: _avgCycleLength));
+
+  static int get cycleDay =>
+      today.difference(lastPeriodStart).inDays + 1;
+
+  static List<Map<String, dynamic>> get history => [
+        {
+          'start': lastPeriodStart,
+          'end': lastPeriodEnd,
+          'length': _avgPeriodLength,
+        },
+        {
+          'start': lastPeriodStart.subtract(
+              const Duration(days: _avgCycleLength)),
+          'end': lastPeriodStart
+              .subtract(const Duration(days: _avgCycleLength))
+              .add(const Duration(days: _avgPeriodLength - 1)),
+          'length': _avgPeriodLength,
+        },
+        {
+          'start': lastPeriodStart
+              .subtract(const Duration(days: _avgCycleLength * 2)),
+          'end': lastPeriodStart
+              .subtract(const Duration(days: _avgCycleLength * 2))
+              .add(const Duration(days: _avgPeriodLength - 1)),
+          'length': _avgPeriodLength,
+        },
+      ];
+}
+
+// ── Screen ────────────────────────────────────────────────────────────────────
 class MenstrualScreen extends StatelessWidget {
   const MenstrualScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final today = DateTime.now();
-    final daysUntil = _nextPeriodDate.difference(today).inDays;
+    final cycleDay = _CycleData.cycleDay;
+    final daysUntil =
+        _CycleData.nextPeriodDate.difference(DateTime.now()).inDays;
     final daysUntilLabel = daysUntil > 0 ? 'In $daysUntil days' : 'Today';
-    final cycleDay = today.difference(_lastPeriodDate).inDays + 1;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -84,7 +122,7 @@ class MenstrualScreen extends StatelessWidget {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'of your cycle',
+                              'of your $_avgCycleLength-day cycle',
                               style: TextStyle(
                                   color: Colors.white.withAlpha(200),
                                   fontSize: 15),
@@ -140,7 +178,7 @@ class MenstrualScreen extends StatelessWidget {
                     emoji: '📅',
                     title: 'Next Period',
                     value: daysUntilLabel,
-                    sub: _fmtDate(_nextPeriodDate),
+                    sub: _fmtDate(_CycleData.nextPeriodDate),
                     color: Colors.pinkAccent,
                   ),
                 ),
@@ -169,7 +207,7 @@ class MenstrualScreen extends StatelessWidget {
             // ── Symptoms Tracker ───────────────────────────────────────
             _sectionLabel(context, 'Log Today\'s Symptoms'),
             const SizedBox(height: 12),
-            _SymptomsRow(context: context),
+            const _SymptomsRow(),
 
             const SizedBox(height: 24),
 
@@ -182,9 +220,9 @@ class MenstrualScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Column(
-                children: List.generate(_cycleHistory.length, (i) {
-                  final c = _cycleHistory[i];
-                  final last = i == _cycleHistory.length - 1;
+                children: List.generate(_CycleData.history.length, (i) {
+                  final c = _CycleData.history[i];
+                  final isLast = i == _CycleData.history.length - 1;
                   return Column(
                     children: [
                       ListTile(
@@ -194,8 +232,8 @@ class MenstrualScreen extends StatelessWidget {
                             color: Colors.pinkAccent.withAlpha(20),
                             shape: BoxShape.circle,
                           ),
-                          child:
-                              const Text('🩸', style: TextStyle(fontSize: 18)),
+                          child: const Text('🩸',
+                              style: TextStyle(fontSize: 18)),
                         ),
                         title: Text(
                           '${_fmtDate(c['start'] as DateTime)} – ${_fmtDate(c['end'] as DateTime)}',
@@ -204,12 +242,13 @@ class MenstrualScreen extends StatelessWidget {
                         ),
                         subtitle: Text('${c['length']} days',
                             style: const TextStyle(
-                                color: AppColors.textSecondary, fontSize: 13)),
+                                color: AppColors.textSecondary,
+                                fontSize: 13)),
                         trailing: const Icon(Icons.chevron_right,
                             color: AppColors.textHint),
                         onTap: () => context.push(AppRoutes.editPeriod),
                       ),
-                      if (!last)
+                      if (!isLast)
                         Divider(
                             height: 1,
                             indent: 56,
@@ -228,24 +267,15 @@ class MenstrualScreen extends StatelessWidget {
     );
   }
 
-  String _fmtDate(DateTime d) => '${_months[d.month - 1]} ${d.day}, ${d.year}';
+  static String _fmtDate(DateTime d) =>
+      '${_months[d.month - 1]} ${d.day}, ${d.year}';
 
   static const _months = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec'
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
   ];
 
-  Widget _sectionLabel(BuildContext context, String text) => Text(
+  static Widget _sectionLabel(BuildContext context, String text) => Text(
         text,
         style: const TextStyle(
             fontWeight: FontWeight.bold,
@@ -261,20 +291,22 @@ class _PhaseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Clamp cycleDay to 1–28 range so it always shows a sensible phase
+    final day = cycleDay.clamp(1, _avgCycleLength);
     String phase, emoji, desc;
     Color color;
 
-    if (cycleDay <= 5) {
+    if (day <= 5) {
       phase = 'Menstrual Phase';
       emoji = '🩸';
       desc = 'Your period is here. Rest well, stay warm, and stay hydrated.';
       color = Colors.pinkAccent;
-    } else if (cycleDay <= 13) {
+    } else if (day <= 13) {
       phase = 'Follicular Phase';
       emoji = '🌱';
       desc = 'Energy rising! Great time for exercise and new challenges.';
       color = AppColors.success;
-    } else if (cycleDay <= 16) {
+    } else if (day <= 16) {
       phase = 'Ovulation Phase';
       emoji = '⭐';
       desc = 'Peak energy and mood. Socialise and tackle big tasks today!';
@@ -349,7 +381,8 @@ class _InfoCard extends StatelessWidget {
           Text(emoji, style: const TextStyle(fontSize: 28)),
           const SizedBox(height: 8),
           Text(title,
-              style: const TextStyle(color: AppColors.textHint, fontSize: 12)),
+              style:
+                  const TextStyle(color: AppColors.textHint, fontSize: 12)),
           const SizedBox(height: 2),
           Text(value,
               style: TextStyle(
@@ -366,8 +399,7 @@ class _InfoCard extends StatelessWidget {
 
 // ── Symptoms Row ──────────────────────────────────────────────────────────────
 class _SymptomsRow extends StatefulWidget {
-  final BuildContext context;
-  const _SymptomsRow({required this.context});
+  const _SymptomsRow();
   @override
   State<_SymptomsRow> createState() => _SymptomsRowState();
 }

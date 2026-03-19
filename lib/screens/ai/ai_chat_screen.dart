@@ -43,9 +43,19 @@ class _AiChatScreenState extends State<AiChatScreen> {
   Future<void> _initAI() async {
     final auth = Provider.of<AuthProvider>(context, listen: false);
     // plainText: false — AI Chat uses Markdown for richer formatting
-    await _aiService.initialize(auth.userProfile);
+    final error = await _aiService.initialize(auth.userProfile);
     if (mounted) {
-      setState(() => _initialized = true);
+      if (error != null) {
+        setState(() {
+          _messages.add(ChatMessage(
+            text: '⚠️ Could not connect to AURA AI: $error\n\nPlease check your internet connection and try again.',
+            isUser: false,
+            timestamp: DateTime.now(),
+          ));
+        });
+      } else {
+        setState(() => _initialized = true);
+      }
     }
   }
 

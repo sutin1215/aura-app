@@ -80,6 +80,7 @@ class AppRoutes {
   static const providerAddReport = '/provider/report';
   static const providerChatPatient = '/provider/chat';
   // NOTE: aiChat route removed — AI is only available on the Companion tab
+  static const healthData = '/health-data';
 }
 
 GoRouter createRouter(BuildContext context) {

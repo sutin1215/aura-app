@@ -8,7 +8,6 @@ import '../../providers/metrics_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../routes/app_router.dart';
 import '../../services/firestore_service.dart';
-import 'package:flutter/cupertino.dart';
 
 String _getGreeting() {
   final hour = DateTime.now().hour;
@@ -41,7 +40,6 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  bool _isConnecting = false;
   bool _isConnected = false;
   String _connectedDevice = '';
 
@@ -167,53 +165,64 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // ── AURA Insight Card ──
-                    Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: AppColors.surface,
-                        borderRadius: BorderRadius.circular(24),
-                        border:
-                            Border.all(color: AppColors.primary.withAlpha(30)),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: AppColors.primary.withAlpha(20),
-                              shape: BoxShape.circle,
+                    GestureDetector(
+                      onTap: () => context.go(AppRoutes.companion),
+                      child: Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(24),
+                          border:
+                              Border.all(color: AppColors.primary.withAlpha(30)),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withAlpha(20),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.auto_awesome,
+                                  color: AppColors.primary, size: 28),
                             ),
-                            child: const Icon(Icons.auto_awesome,
-                                color: AppColors.primary, size: 28),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'AURA Insight',
-                                  style: TextStyle(
-                                      color: AppColors.textPrimary,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  _getAuraInsight(
-                                    today?.steps ?? 0,
-                                    today?.waterIntakeMl ?? 0,
-                                    today?.sleepMinutes ?? 0,
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'AURA Insight',
+                                    style: TextStyle(
+                                        color: AppColors.textPrimary,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold),
                                   ),
-                                  style: const TextStyle(
-                                      color: AppColors.textSecondary,
-                                      fontSize: 13,
-                                      height: 1.4),
-                                ),
-                              ],
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    _getAuraInsight(
+                                      today?.steps ?? 0,
+                                      today?.waterIntakeMl ?? 0,
+                                      today?.sleepMinutes ?? 0,
+                                    ),
+                                    style: const TextStyle(
+                                        color: AppColors.textSecondary,
+                                        fontSize: 13,
+                                        height: 1.4),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  const Text(
+                                    'Chat with AURA →',
+                                    style: TextStyle(
+                                        color: AppColors.primary,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     )
                         .animate()
@@ -389,6 +398,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             color: Colors.teal,
                             onTap: () =>
                                 context.push(AppRoutes.healthcareInteraction)),
+                        _QuickActionCard(
+                            label: 'Find Hospital',
+                            icon: Icons.local_hospital_outlined,
+                            color: Colors.redAccent,
+                            onTap: () =>
+                                context.push(AppRoutes.hospitalLocator)),
+                        _QuickActionCard(
+                            label: 'Appointments',
+                            icon: Icons.calendar_month_outlined,
+                            color: Colors.deepPurpleAccent,
+                            onTap: () =>
+                                context.push(AppRoutes.appointments)),
                       ]
                           .animate(interval: 50.ms)
                           .fade(duration: 400.ms)

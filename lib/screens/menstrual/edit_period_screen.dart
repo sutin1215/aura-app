@@ -13,7 +13,7 @@ class _EditPeriodScreenState extends State<EditPeriodScreen> {
   DateTime? _startDate;
   DateTime? _endDate;
   String _flow = 'Medium';
-  String _mood = 'Neutral';
+  String _mood = 'Neutral 😐';
   bool _isSaving = false;
 
   static const _flowOptions = ['Light', 'Medium', 'Heavy'];
@@ -33,9 +33,10 @@ class _EditPeriodScreenState extends State<EditPeriodScreen> {
       lastDate: DateTime.now().add(const Duration(days: 365)),
       builder: (context, child) => Theme(
         data: Theme.of(context).copyWith(
-          colorScheme: const ColorScheme.light(
+          colorScheme: const ColorScheme.dark(
             primary: Colors.pinkAccent,
             onPrimary: Colors.white,
+            surface: Color(0xFF1E1E2E),
           ),
         ),
         child: child!,

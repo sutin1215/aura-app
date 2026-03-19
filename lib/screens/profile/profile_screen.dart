@@ -253,7 +253,6 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: 24),
 
             // ── SECTION 3 — Assigned Provider ────────────────────────────────
-            // ── SECTION 3 — Assigned Provider ────────────────────────────────
             _sectionLabel('Your Healthcare Provider'),
             const SizedBox(height: 12),
             if (isConnected)
