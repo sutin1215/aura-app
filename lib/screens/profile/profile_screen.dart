@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../providers/auth_provider.dart';
 import '../../routes/app_router.dart';
@@ -214,12 +215,7 @@ class ProfileScreen extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppColors.surface,
                 borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                      color: Colors.black.withAlpha(5),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4)),
-                ],
+                boxShadow: AppTheme.subtleShadow,
               ),
               child: Row(
                 children: [
@@ -326,6 +322,7 @@ class ProfileScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: AppColors.surface,
                   borderRadius: BorderRadius.circular(20),
+                  boxShadow: AppTheme.subtleShadow,
                   border: Border.all(color: AppColors.primary.withAlpha(30)),
                 ),
                 child: Row(
@@ -403,12 +400,7 @@ class ProfileScreen extends StatelessWidget {
                       color: AppColors.surface,
                       borderRadius: BorderRadius.circular(18),
                       border: Border.all(color: color.withAlpha(60)),
-                      boxShadow: [
-                        BoxShadow(
-                            color: color.withAlpha(20),
-                            blurRadius: 8,
-                            offset: const Offset(0, 4)),
-                      ],
+                      boxShadow: AppTheme.subtleShadow,
                     ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -440,12 +432,7 @@ class ProfileScreen extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppColors.surface,
                 borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                      color: Colors.black.withAlpha(5),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4)),
-                ],
+                boxShadow: AppTheme.subtleShadow,
               ),
               child: Column(
                 children: [
@@ -533,7 +520,7 @@ class ProfileScreen extends StatelessWidget {
             ),
           ],
         ),
-      ),
+      ).animate().fade(duration: 400.ms).slideY(begin: 0.05, end: 0),
     );
   }
 

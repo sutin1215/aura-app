@@ -60,14 +60,17 @@ class AppTheme {
         displayLarge: GoogleFonts.poppins(
             fontSize: 28,
             fontWeight: FontWeight.bold,
+            letterSpacing: -0.5,
             color: AppColors.textPrimary),
         titleLarge: GoogleFonts.poppins(
             fontSize: 20,
             fontWeight: FontWeight.w600,
+            letterSpacing: -0.3,
             color: AppColors.textPrimary),
         titleMedium: GoogleFonts.poppins(
             fontSize: 16,
             fontWeight: FontWeight.w600,
+            letterSpacing: -0.1,
             color: AppColors.textPrimary),
         bodyLarge:
             GoogleFonts.poppins(fontSize: 15, color: AppColors.textPrimary),
@@ -185,6 +188,15 @@ class AppTheme {
       colors: [AppColors.gradientStart, AppColors.gradientEnd],
     ),
   );
+
+  // ── Subtle Shadows ───────────────────────────────────────────────────────────
+  static final List<BoxShadow> subtleShadow = [
+    BoxShadow(
+      color: Colors.black.withAlpha(10), // Very light soft shadow
+      blurRadius: 16,
+      offset: const Offset(0, 4),
+    ),
+  ];
 
   // ── Full screen gradient background ────────────────────────────────────────
   static const BoxDecoration scaffoldGradient = BoxDecoration(

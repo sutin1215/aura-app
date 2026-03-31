@@ -177,14 +177,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                         child: Row(
                           children: [
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: AppColors.primary.withAlpha(20),
-                                shape: BoxShape.circle,
+                            ClipOval(
+                              child: Image.asset(
+                                'assets/images/aura_avatar.png',
+                                width: 52,
+                                height: 52,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => Container(
+                                  width: 52,
+                                  height: 52,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primary.withAlpha(20),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(Icons.auto_awesome,
+                                      color: AppColors.primary, size: 28),
+                                ),
                               ),
-                              child: const Icon(Icons.auto_awesome,
-                                  color: AppColors.primary, size: 28),
                             ),
                             const SizedBox(width: 16),
                             Expanded(
@@ -456,6 +465,7 @@ class _MetricCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(24),
+          boxShadow: AppTheme.subtleShadow,
           border: Border.all(color: color.withAlpha(30)),
         ),
         child: Column(
@@ -539,6 +549,7 @@ class _QuickActionCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(16),
+          boxShadow: AppTheme.subtleShadow,
           border: Border.all(color: color.withAlpha(30)),
         ),
         child: Row(
