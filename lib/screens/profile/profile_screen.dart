@@ -237,14 +237,12 @@ class ProfileScreen extends StatelessWidget {
                     AppColors.steps,
                   ),
                   _vertDivider(),
-                  GestureDetector(
+                  _statItem(
+                    bmi > 0 ? bmi.toStringAsFixed(1) : '—',
+                    'BMI · ${bmiInfo.label}',
+                    Icons.calculate_outlined,
+                    bmiInfo.color,
                     onTap: () => _showBmiDialog(context, bmi, bmiInfo),
-                    child: _statItem(
-                      bmi > 0 ? bmi.toStringAsFixed(1) : '—',
-                      'BMI · ${bmiInfo.label}',
-                      Icons.calculate_outlined,
-                      bmiInfo.color,
-                    ),
                   ),
                 ],
               ),
@@ -568,22 +566,30 @@ class ProfileScreen extends StatelessWidget {
         ),
       );
 
-  Widget _statItem(String value, String label, IconData icon, Color color) {
-    return Expanded(
-      child: Column(
-        children: [
-          Icon(icon, color: color, size: 20),
-          const SizedBox(height: 6),
-          Text(value,
-              style: TextStyle(
-                  fontWeight: FontWeight.bold, fontSize: 16, color: color)),
-          const SizedBox(height: 2),
-          Text(label,
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: AppColors.textHint, fontSize: 11)),
-        ],
-      ),
+  Widget _statItem(String value, String label, IconData icon, Color color, {VoidCallback? onTap}) {
+    Widget content = Column(
+      children: [
+        Icon(icon, color: color, size: 20),
+        const SizedBox(height: 6),
+        Text(value,
+            style: TextStyle(
+                fontWeight: FontWeight.bold, fontSize: 16, color: color)),
+        const SizedBox(height: 2),
+        Text(label,
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: AppColors.textHint, fontSize: 11)),
+      ],
     );
+
+    if (onTap != null) {
+      content = GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: content,
+      );
+    }
+
+    return Expanded(child: content);
   }
 
   Widget _vertDivider() => Container(

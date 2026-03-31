@@ -36,3 +36,6 @@ lib/config/app_config.dart
 
 # macOS
 .DS_Store
+
+# Local ENV variables
+.env

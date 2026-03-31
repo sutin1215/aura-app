@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import '../models/user_profile.dart';
 import '../config/app_config.dart';
@@ -43,14 +44,16 @@ Always factor this context into your responses gracefully. Be friendly, professi
 
     try {
       _model = GenerativeModel(
-        model: 'gemini-1.5-flash',
+        model: 'gemini-2.5-flash',
         apiKey: AppConfig.geminiApiKey,
         systemInstruction: Content.system(systemInstructions),
       );
       _chatSession = _model!.startChat();
       _isInitialized = true;
+      debugPrint('[AIService] Initialized successfully.');
       return null; // success
     } catch (e) {
+      debugPrint('[AIService] Init error: $e');
       return 'Failed to start AI: $e';
     }
   }
@@ -64,7 +67,8 @@ Always factor this context into your responses gracefully. Be friendly, professi
       return response.text?.trim() ??
           "I'm having trouble thinking right now. Could you rephrase?";
     } catch (e) {
-      return "I ran into a connection issue. Please check your internet and try again!";
+      debugPrint('[AIService] sendMessage error: $e');
+      return "⚠️ AI Error: ${e.runtimeType}: $e";
     }
   }
 
