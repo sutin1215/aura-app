@@ -304,8 +304,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                const Icon(Icons.arrow_forward_ios, color: Colors.white70, size: 16),
                           ],
                         ),
-                      ).animate().fade(delay: 100.ms).slideY(begin: 0.1),
-                    ),
+                      ),
+                    ).animate().fade(delay: 100.ms).slideY(begin: 0.1),
 
                     const SizedBox(height: 36),
                     const Text("Today's Activity",

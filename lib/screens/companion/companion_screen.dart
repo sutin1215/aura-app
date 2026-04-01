@@ -1,11 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 import '../../models/chat_message.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/metrics_provider.dart';
 import '../../services/ai_service.dart';
 import '../../theme/app_theme.dart';
+
+// ── Mood options ──────────────────────────────────────────────────────────────
+const _moods = [
+  {'emoji': '😊', 'label': 'Great', 'prompt': 'I am feeling great today!'},
+  {'emoji': '😐', 'label': 'Okay', 'prompt': 'I am feeling okay today.'},
+  {'emoji': '😴', 'label': 'Tired', 'prompt': 'I am feeling really tired today.'},
+  {'emoji': '💪', 'label': 'Energized', 'prompt': 'I am feeling energized and ready to exercise!'},
+  {'emoji': '😰', 'label': 'Stressed', 'prompt': 'I am feeling stressed and could use some tips to calm down.'},
+];
 
 // ── Quick suggestion prompts ──────────────────────────────────────────────────
 const _suggestions = [
@@ -33,13 +44,43 @@ class _CompanionScreenState extends State<CompanionScreen> {
   bool _aiInitializing = false;
   String? _aiError;
   bool _isTyping = false;
+  bool _showStarter = false;
 
   final List<ChatMessage> _messages = [];
 
   @override
   void initState() {
     super.initState();
+    _loadMessages();
     _initAI();
+  }
+
+  // ── Chat Persistence ────────────────────────────────────────────────────────
+  Future<void> _loadMessages() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final json = prefs.getString('aura_chat_history');
+      if (json != null && mounted) {
+        final list = (jsonDecode(json) as List).map((m) => ChatMessage(
+          text: m['text'] as String,
+          isUser: m['isUser'] as bool,
+          timestamp: DateTime.parse(m['ts'] as String),
+        )).toList();
+        setState(() => _messages.addAll(list));
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _saveMessages() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final json = jsonEncode(_messages.map((m) => {
+        'text': m.text,
+        'isUser': m.isUser,
+        'ts': m.timestamp.toIso8601String(),
+      }).toList());
+      await prefs.setString('aura_chat_history', json);
+    } catch (_) {}
   }
 
   Future<void> _initAI() async {
@@ -82,6 +123,7 @@ class _CompanionScreenState extends State<CompanionScreen> {
     _textController.clear();
 
     setState(() {
+      _showStarter = false;
       _messages.add(ChatMessage(text: trimmed, isUser: true, timestamp: DateTime.now()));
       _isTyping = true;
     });
@@ -94,6 +136,7 @@ class _CompanionScreenState extends State<CompanionScreen> {
       _isTyping = false;
       _messages.add(ChatMessage(text: response, isUser: false, timestamp: DateTime.now()));
     });
+    _saveMessages();
     _scrollToBottom();
   }
 
@@ -124,7 +167,7 @@ class _CompanionScreenState extends State<CompanionScreen> {
   }
 
   // Whether to show the welcome hero (no conversation started yet)
-  bool get _showHero => _messages.isEmpty;
+  bool get _showHero => _messages.isEmpty || _showStarter;
 
   @override
   Widget build(BuildContext context) {
@@ -240,6 +283,29 @@ class _CompanionScreenState extends State<CompanionScreen> {
           ),
         ],
       ),
+      actions: [
+        if (_messages.isNotEmpty)
+          Container(
+            margin: const EdgeInsets.only(right: 8),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withAlpha(20),
+              shape: BoxShape.circle,
+            ),
+            child: IconButton(
+              icon: Icon(
+                _showStarter ? Icons.chat_bubble_outline : Icons.grid_view_rounded,
+                color: AppColors.primary,
+                size: 20,
+              ),
+              tooltip: _showStarter ? 'Return to Chat' : 'Show Suggestions',
+              onPressed: () {
+                setState(() {
+                  _showStarter = !_showStarter;
+                });
+              },
+            ),
+          ),
+      ],
     );
   }
 }
@@ -341,12 +407,20 @@ class _HeroWelcome extends StatelessWidget {
             ),
           ).animate().fade(delay: 300.ms),
 
-          const SizedBox(height: 28),
+          const SizedBox(height: 24),
+
+          // ── Mood Check-In ──────────────────────────────────────────────────
+          _MoodCheckIn(onMoodTap: onSuggestionTap)
+              .animate()
+              .fade(delay: 350.ms)
+              .slideY(begin: 0.1, end: 0),
+
+          const SizedBox(height: 24),
 
           // ── Health Context Cards ───────────────────────────────────────────
           _HealthContextCards(today: today, onTap: onSuggestionTap)
               .animate()
-              .fade(delay: 400.ms)
+              .fade(delay: 450.ms)
               .slideY(begin: 0.1, end: 0),
 
           const SizedBox(height: 28),
@@ -498,6 +572,67 @@ class _PulsingAvatarState extends State<_PulsingAvatar>
           ),
         );
       },
+    );
+  }
+}
+
+// ── Mood Check-In ─────────────────────────────────────────────────────────────
+class _MoodCheckIn extends StatelessWidget {
+  final ValueChanged<String> onMoodTap;
+  const _MoodCheckIn({required this.onMoodTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'How are you feeling?',
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textSecondary,
+          ),
+        ),
+        const SizedBox(height: 10),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: _moods.map((mood) {
+            return GestureDetector(
+              onTap: () => onMoodTap(mood['prompt']!),
+              child: Column(
+                children: [
+                  Container(
+                    width: 52,
+                    height: 52,
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      shape: BoxShape.circle,
+                      boxShadow: AppTheme.subtleShadow,
+                      border: Border.all(color: AppColors.border),
+                    ),
+                    child: Center(
+                      child: Text(
+                        mood['emoji']!,
+                        style: const TextStyle(fontSize: 24),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    mood['label']!,
+                    style: const TextStyle(
+                      fontSize: 10,
+                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }).toList(),
+        ),
+      ],
     );
   }
 }
